@@ -9,15 +9,15 @@ public class MyCanvas extends Canvas {
     private double l,r,b,t;
     private double[][] CT = {{1, 0, 0,0}, {0, 1, 0,0}, {0, 0, 1,0},{0, 0, 0,1}};
     private double[][] TT = {{1, 0, 0,0}, {0, 1, 0,0}, {0, 0, 1,0},{0, 0, 0,1}};
-    private int viewportX;
-    private int viewportY;
+    private int vw;
+    private int vh;
     private ArrayList<Point3D> vertexes;
     private ArrayList<int[]> polygons;
     private Point2D[] points2D;
     private Mathematics math=new Mathematics();
 
     public MyCanvas(ArrayList<Point3D> vertexes,ArrayList<int[]> polygons,
-                    Point3D position,Point3D lookAt,Point3D up,double l,double r,double b,double t,int viewportX, int viewportY) {
+                    Point3D position,Point3D lookAt,Point3D up,double l,double r,double b,double t,int vw, int vh) {
         this.vertexes=vertexes;
         this.polygons=polygons;
         this.Px=position.getX();
@@ -33,22 +33,40 @@ public class MyCanvas extends Canvas {
         this.r=r;
         this.b=b;
         this.t=t;
-        this.viewportX=viewportX;
-        this.viewportY=viewportY;
+        this.vw=vw;
+        this.vh=vh;
 
 
     }
     public void paint(Graphics g) {
-        g.drawRect(20, 20, viewportX, viewportY);
-        double[][] t = createT();
-        double[][] r = createR();
-        double[][] m = math.multMatrix(t, r);
-        double[][] temp = math.multMatrix(TT, m);
+        g.drawRect(20, 20, vw, vh);
 
-        double[][] TrM = math.multMatrix(CT, temp);
+        double[][] T = createT();
+        double[][] R = createR();
+        double[][] VM1 = math.multMatrix(T, R);
+
+        double[][] T1 = new double[4][4];
+        double[][] T2 = new double[4][4];
+        double[][] S =new double[4][4];
+        double[][] P = new double[4][4];
+        for(int i = 0; i < 4; i++) {
+            T1[i][i] = T2[i][i] = S[i][i] = P[i][i] = 1;
+        }
+        P[2][2] = 0;
+        T1[0][3] = - (1 + (r - l) / 2);
+        T1[1][3] = - (b + (t - b) / 2);
+        T2[0][3] = 20 + (vw / 2);
+        T2[1][3] = 20 + (vh / 2);
+        S[0][0] = vw / (r - l);
+        S[1][1] = - vh / (t - b);
+        double[][] VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
+
+        //double[][] temp = math.multMatrix(TT, VM1);
+        double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT,(math.multMatrix(TT, VM1))))));
+        //double[][] TrM = math.multMatrix(CT, temp);
         ArrayList<Point3D> vertexesTag = new ArrayList<>();
         for (Point3D p : vertexes) {
-            double[] pTag = math.multPMatrix(p, TrM);
+            double[] pTag = math.multPMatrix(TrM, p);
             vertexesTag.add(new Point3D(pTag[0], pTag[1], pTag[2]));
         }
 

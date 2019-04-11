@@ -22,7 +22,7 @@ public class Mathematics {
         return resMatrix;
     }
 
-    public double[] multPMatrix(Point3D p, double[][] mat) {
+    public double[] multPMatrix(double[][] mat, Point3D p) {
         int i, j, k, m, n;
         double[] vecP = {p.getX(), p.getY(), p.getZ(), 1};
         int rowsA = mat.length;

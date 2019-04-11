@@ -15,8 +15,8 @@ public class Main {
     public static Point3D position;
     public static Point3D lookAt;
     public static Point3D up;
-    public static int viewportX;
-    public static int viewportY;
+    public static int vw;
+    public static int vh;
     public static  ArrayList<Point3D> vertexes = new ArrayList<>();
     public static  ArrayList<int[]>polygons = new ArrayList<>();
 
@@ -31,12 +31,12 @@ public class Main {
         }
         readScn();
         readView();
-        MyCanvas canvas=new MyCanvas(vertexes,polygons,position,lookAt,up,l,r,b,t,viewportX,viewportY);
+        MyCanvas canvas=new MyCanvas(vertexes,polygons,position,lookAt,up,l,r,b,t,vw,vh);
         JFrame frame = new JFrame();
 
         frame.getContentPane().add(canvas);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(viewportX+40,viewportY+40);
+        frame.setSize(vw+40,vh+40);
         frame.setVisible(true);
     }
     public static void  readScn() {
@@ -94,8 +94,8 @@ public class Main {
             line = br.readLine();
             String Viewport_str = line.replace("Viewport ","");
             splitStr = Viewport_str.split("\\s+");
-            viewportX=Integer.parseInt(splitStr[0]);
-            viewportY=Integer.parseInt(splitStr[1]);
+            vw=Integer.parseInt(splitStr[0]);
+            vh=Integer.parseInt(splitStr[1]);
             br.close();
         } catch (IOException e) {
             e.printStackTrace();
