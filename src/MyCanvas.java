@@ -7,13 +7,12 @@ public class MyCanvas extends Canvas {
     private double Lx,Ly,Lz;
     private double Vx,Vy,Vz;
     private double l,r,b,t;
-    private double[][] CT = {{1, 0, 0,0}, {0, 1, 0,0}, {0, 0, 1,0},{0, 0, 0,1}};
-    private double[][] TT = {{1, 0, 0,0}, {0, 1, 0,0}, {0, 0, 1,0},{0, 0, 0,1}};
+    private double[][] CT = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},{0, 0, 0, 1}};
+    private double[][] TT = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},{0, 0, 0, 1}};
     private int vw;
     private int vh;
     private ArrayList<Point3D> vertexes;
     private ArrayList<int[]> polygons;
-    private Point2D[] points2D;
     private Mathematics math=new Mathematics();
 
     public MyCanvas(ArrayList<Point3D> vertexes,ArrayList<int[]> polygons,
@@ -35,9 +34,8 @@ public class MyCanvas extends Canvas {
         this.t=t;
         this.vw=vw;
         this.vh=vh;
-
-
     }
+
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
 
@@ -61,28 +59,20 @@ public class MyCanvas extends Canvas {
         S[1][1] = - vh / (t - b);
         double[][] VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
 
-        //double[][] temp = math.multMatrix(TT, VM1);
         double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT,(math.multMatrix(TT, VM1))))));
-        //double[][] TrM = math.multMatrix(CT, temp);
-        ArrayList<Point3D> vertexesTag = new ArrayList<>();
+        ArrayList<Point2D> vertexesTag = new ArrayList<>();
         for (Point3D p : vertexes) {
-            double[] pTag = math.multPMatrix(TrM, p);
-            vertexesTag.add(new Point3D(pTag[0], pTag[1], pTag[2]));
+            int[] pTag = math.multPMatrix(TrM, p);
+            vertexesTag.add(new Point2D(pTag[0], pTag[1]));
         }
-
-
-        //Point2D wc=new Point2D(1+(y-1)/2,b+(t-b)/2);
-
-
-
 
         for (int[] p : polygons) {
-            Point3D startLine=vertexesTag.get(p[0]);
-            Point3D endLine=vertexesTag.get(p[1]);
-
-           // g.drawLine(startLine.);
+            Point2D startLine=vertexesTag.get(p[0]);
+            Point2D endLine=vertexesTag.get(p[1]);
+            g.drawLine(startLine.getX(), startLine.getY(), endLine.getY(), endLine.getY());
         }
     }
+
     public double[][] createT() {
         double[][] transMatrix=new double[4][4];
         transMatrix[0][0]=1;
@@ -94,10 +84,12 @@ public class MyCanvas extends Canvas {
         transMatrix[3][3]=1;
         return transMatrix;
     }
+
     public double[][] createR() {
-        double zv_x=Px-Lx/Math.abs(Px-Lx);
-        double zv_y=Py-Ly/Math.abs(Py-Ly);
-        double zv_z=Pz-Lz/Math.abs(Pz-Lz);
+        double z_norm = Math.sqrt(Math.pow(Px-Lx, 2) + Math.pow(Py-Ly, 2) + Math.pow(Pz-Lz, 2));
+        double zv_x=(Px-Lx)/z_norm;
+        double zv_y=(Py-Ly)/z_norm;
+        double zv_z=(Pz-Lz)/z_norm;
 
         Point3D zv=new Point3D(zv_x,zv_y,zv_z);
         double[] mult_v_z = math.multPP(new Point3D(Vx,Vy,Vz),zv);
@@ -125,5 +117,4 @@ public class MyCanvas extends Canvas {
 
         return transMatrix;
     }
-
 }

@@ -33,10 +33,10 @@ public class Main {
         readView();
         MyCanvas canvas=new MyCanvas(vertexes,polygons,position,lookAt,up,l,r,b,t,vw,vh);
         JFrame frame = new JFrame();
+        frame.setSize(vw + 40,vh + 40);
 
         frame.getContentPane().add(canvas);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(vw+40,vh+40);
         frame.setVisible(true);
     }
     public static void  readScn() {
@@ -90,7 +90,7 @@ public class Main {
             l=Double.parseDouble(splitStr[0]);
             r=Double.parseDouble(splitStr[1]);
             b=Double.parseDouble(splitStr[2]);
-            t=b=Double.parseDouble(splitStr[3]);
+            t=Double.parseDouble(splitStr[3]);
             line = br.readLine();
             String Viewport_str = line.replace("Viewport ","");
             splitStr = Viewport_str.split("\\s+");

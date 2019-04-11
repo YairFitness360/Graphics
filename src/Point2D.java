@@ -1,15 +1,15 @@
 public class Point2D {
-    private double x;
-    private double y;
+    private int x;
+    private int y;
 
-    public Point2D(double a,double b) {
+    public Point2D(int a,int b) {
         x=a;
         y=b;
     }
-    public double getX() {
+    public int getX() {
         return this.x;
     }
-    public double getY() {
+    public int getY() {
         return this.y;
     }
 

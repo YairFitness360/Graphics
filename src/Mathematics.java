@@ -22,13 +22,13 @@ public class Mathematics {
         return resMatrix;
     }
 
-    public double[] multPMatrix(double[][] mat, Point3D p) {
+    public int[] multPMatrix(double[][] mat, Point3D p) {
         int i, j, k, m, n;
-        double[] vecP = {p.getX(), p.getY(), p.getZ(), 1};
+        int[] vecP = {(int)p.getX(), (int)p.getY(), (int)p.getZ(), 1};
         int rowsA = mat.length;
         int colsA = mat[0].length;
         int rowsB = vecP.length;
-        double[] resVec = new double[rowsA];
+        int[] resVec = new int[rowsA];
         for (i = 0; i < rowsA; i++) {
             for (k = 0; k < colsA; k++) {
                 resVec[i] += mat[i][k] * vecP[k];
