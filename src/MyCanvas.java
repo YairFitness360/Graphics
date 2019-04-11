@@ -39,10 +39,10 @@ public class MyCanvas extends Canvas {
 
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
-
+        g.drawLine(0,0,400, 400);
         double[][] T = createT();
         double[][] R = createR();
-        double[][] VM1 = math.multMatrix(T, R);
+        double[][] VM1 = math.multMatrix(R, T);
 
         double[][] T1 = new double[4][4];
         double[][] T2 = new double[4][4];
@@ -72,6 +72,34 @@ public class MyCanvas extends Canvas {
             Point2D endLine = vertexesTag.get(p[1]);
             g.drawLine(startLine.getX(), startLine.getY(), endLine.getY(), endLine.getY());
         }
+//        System.out.println("T2:");
+//        math.printMatrix(T2);
+//        System.out.println("S:");
+//        math.printMatrix(S);
+//        System.out.println("T1:");
+//        math.printMatrix(T1);
+//        System.out.println("VM2:");
+//        math.printMatrix(VM2);
+//        System.out.println("P:");
+//        math.printMatrix(P);
+//        System.out.println("CT:");
+//        math.printMatrix(CT);
+//        System.out.println("TT:");
+//        math.printMatrix(TT);
+//        System.out.println("VM1:");
+//        math.printMatrix(VM1);
+//        System.out.println("R:");
+//        math.printMatrix(R);
+//        System.out.println("T:");
+//        math.printMatrix(T);
+//        System.out.println("TT*VM1:");
+//        math.printMatrix(math.multMatrix(TT, VM1));
+//        System.out.println("CT*TT*VM1:");
+//        math.printMatrix(math.multMatrix(CT,(math.multMatrix(TT, VM1))));
+//        System.out.println("P*CT*TT*VM1:");
+//        math.printMatrix(math.multMatrix(P, math.multMatrix(CT,(math.multMatrix(TT, VM1)))));
+        System.out.println("VM2*P*CT*TT*VM1:");
+        math.printMatrix(math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT,(math.multMatrix(TT, VM1)))))));
     }
 
     public double[][] createT() {

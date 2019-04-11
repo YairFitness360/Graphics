@@ -14,7 +14,9 @@ public class Mathematics {
         for (i = 0; i < rowsA; i++) {
             for (j = 0; j < colsB; j++) {
                 for (k = 0; k < colsA; k++) {
-                    resMatrix[i][j] += mat1[i][k] * mat2[k][j];
+                    double a = mat1[i][k];
+                    double b = mat2[k][j];
+                    double c = resMatrix[i][j] += mat1[i][k] * mat2[k][j];
 
                 }
             }
@@ -40,22 +42,14 @@ public class Mathematics {
     public double[] multPP(Point3D p1, Point3D p2) {
         int i, k;
         double[] vecP1 = {p1.getX(), p1.getY(), p1.getZ()};
-        double[] vecP2 = {p1.getX(), p1.getY(), p1.getZ()};
-        /*
-        int rowsA = vecP1.length;
-        int colsB = vecP2.length;
-        double[][] resMatrix = new double[rowsA][colsB];
-        for (i = 0; i < rowsA; i++) {
-            for (j = 0; j < colsB; j++) {
-                resMatrix[i][j] = vecP1[i] * vecP2[j];
-            }
-        }
-        */
+        double[] vecP2 = {p2.getX(), p2.getY(), p2.getZ()};
+
         int rowsA = vecP1.length;
         double[] resMatrix = new double[rowsA];
-        for (i = 0; i < rowsA; i++) {
-            resMatrix[i] = vecP1[i] * vecP2[i];
-        }
+
+        resMatrix[0] = vecP1[1]*vecP2[2] - vecP1[2]*vecP2[1];
+        resMatrix[1] = vecP1[2]*vecP2[0] - vecP1[0]*vecP2[2];
+        resMatrix[2] = vecP1[0]*vecP2[1] - vecP1[1]*vecP2[0];
         return resMatrix;
     }
 
