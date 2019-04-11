@@ -3,37 +3,38 @@ import java.util.ArrayList;
 
 
 public class MyCanvas extends Canvas {
-    private double Px,Py,Pz;
-    private double Lx,Ly,Lz;
-    private double Vx,Vy,Vz;
-    private double l,r,b,t;
+    private double Px, Py, Pz;
+    private double Lx, Ly, Lz;
+    private double Vx, Vy, Vz;
+    private double l, r, b, t;
     private double[][] CT = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},{0, 0, 0, 1}};
     private double[][] TT = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0},{0, 0, 0, 1}};
     private int vw;
     private int vh;
     private ArrayList<Point3D> vertexes;
     private ArrayList<int[]> polygons;
-    private Mathematics math=new Mathematics();
+    private Mathematics math = new Mathematics();
 
-    public MyCanvas(ArrayList<Point3D> vertexes,ArrayList<int[]> polygons,
-                    Point3D position,Point3D lookAt,Point3D up,double l,double r,double b,double t,int vw, int vh) {
-        this.vertexes=vertexes;
-        this.polygons=polygons;
-        this.Px=position.getX();
-        this.Py=position.getY();
-        this.Pz=position.getZ();
-        this.Lx=lookAt.getX();
-        this.Ly=lookAt.getY();
-        this.Lz=lookAt.getZ();
-        this.Vx=up.getX();
-        this.Vy=up.getY();
-        this.Vz=up.getZ();
-        this.l=l;
-        this.r=r;
-        this.b=b;
-        this.t=t;
-        this.vw=vw;
-        this.vh=vh;
+    public MyCanvas(ArrayList<Point3D> vertexes, ArrayList<int[]> polygons,
+                    Point3D position, Point3D lookAt, Point3D up, double l, double r,
+                    double b, double t, int vw, int vh) {
+        this.vertexes = vertexes;
+        this.polygons = polygons;
+        this.Px = position.getX();
+        this.Py = position.getY();
+        this.Pz = position.getZ();
+        this.Lx = lookAt.getX();
+        this.Ly = lookAt.getY();
+        this.Lz = lookAt.getZ();
+        this.Vx = up.getX();
+        this.Vy = up.getY();
+        this.Vz = up.getZ();
+        this.l = l;
+        this.r = r;
+        this.b = b;
+        this.t = t;
+        this.vw = vw;
+        this.vh = vh;
     }
 
     public void paint(Graphics g) {
@@ -67,53 +68,48 @@ public class MyCanvas extends Canvas {
         }
 
         for (int[] p : polygons) {
-            Point2D startLine=vertexesTag.get(p[0]);
-            Point2D endLine=vertexesTag.get(p[1]);
+            Point2D startLine = vertexesTag.get(p[0]);
+            Point2D endLine = vertexesTag.get(p[1]);
             g.drawLine(startLine.getX(), startLine.getY(), endLine.getY(), endLine.getY());
         }
     }
 
     public double[][] createT() {
-        double[][] transMatrix=new double[4][4];
-        transMatrix[0][0]=1;
-        transMatrix[0][3]=-Px;
-        transMatrix[1][1]=1;
-        transMatrix[1][3]=-Py;
-        transMatrix[2][2]=1;
-        transMatrix[2][3]=-Pz;
-        transMatrix[3][3]=1;
+        double[][] transMatrix = new double[4][4];
+        for(int i = 0; i < 4; i++) {
+            transMatrix[i][i] = 1;
+        }
+        transMatrix[0][3] = -Px;
+        transMatrix[1][3] = -Py;
+        transMatrix[2][3] = -Pz;
         return transMatrix;
     }
 
     public double[][] createR() {
         double z_norm = Math.sqrt(Math.pow(Px-Lx, 2) + Math.pow(Py-Ly, 2) + Math.pow(Pz-Lz, 2));
-        double zv_x=(Px-Lx)/z_norm;
-        double zv_y=(Py-Ly)/z_norm;
-        double zv_z=(Pz-Lz)/z_norm;
+        double[] sub_p_l = {Px - Lx, Py - Ly, Pz - Lz};
+        double[] zv = math.devideVec(sub_p_l, z_norm);
+        Point3D zv_point = new Point3D(zv[0], zv[1], zv[2]);
 
-        Point3D zv=new Point3D(zv_x,zv_y,zv_z);
-        double[] mult_v_z = math.multPP(new Point3D(Vx,Vy,Vz),zv);
-        int size=mult_v_z.length;
-        double sumNormal=0;
-        for (int i=0; i<size; i++) {
-            sumNormal+=mult_v_z[i];
-        }
-        double[] xv=math.devideVec(mult_v_z,sumNormal);
-        double[] yv=math.multPP(new Point3D(xv[0],xv[1],xv[2]),new Point3D(zv_x,zv_x,zv_z));
+        double[] mult_v_z = math.multPP(new Point3D(Vx, Vy, Vz), zv_point);
+        double x_norm = Math.sqrt(Math.pow(mult_v_z[0], 2) + Math.pow(mult_v_z[1], 2) + Math.pow(mult_v_z[2], 2));
+        double[] xv = math.devideVec(mult_v_z, x_norm);
 
-        double[][] transMatrix=new double[4][4];
-        transMatrix[0][0]=xv[0];
-        transMatrix[0][1]=xv[1];
-        transMatrix[0][2]=xv[2];
+        double[] yv = math.multPP(new Point3D(xv[0], xv[1], xv[2]), zv_point);
 
-        transMatrix[1][0]=yv[0];
-        transMatrix[1][1]=yv[1];
-        transMatrix[1][2]=yv[2];
+        double[][] transMatrix = new double[4][4];
+        transMatrix[0][0] = xv[0];
+        transMatrix[0][1] = xv[1];
+        transMatrix[0][2] = xv[2];
 
-        transMatrix[2][0]=zv_x;
-        transMatrix[2][1]=zv_y;
-        transMatrix[2][2]=zv_z;
-        transMatrix[3][3]=1;
+        transMatrix[1][0] = yv[0];
+        transMatrix[1][1] = yv[1];
+        transMatrix[1][2] = yv[2];
+
+        transMatrix[2][0] = zv[0];
+        transMatrix[2][1] = zv[1];
+        transMatrix[2][2] = zv[2];
+        transMatrix[3][3] = 1;
 
         return transMatrix;
     }

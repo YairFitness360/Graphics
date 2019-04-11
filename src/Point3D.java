@@ -4,9 +4,9 @@ public class Point3D {
     private double z;
 
     public Point3D(double a,double b, double c) {
-        x=a;
-        y=b;
-        z=c;
+        x = a;
+        y = b;
+        z = c;
     }
     public double getX() {
         return this.x;

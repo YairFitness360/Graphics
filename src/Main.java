@@ -39,6 +39,7 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
+
     public static void  readScn() {
         String filePath = "example3d.scn";
         try {
@@ -101,6 +102,5 @@ public class Main {
             e.printStackTrace();
         }
     }
-
 }
 

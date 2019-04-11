@@ -23,11 +23,10 @@ public class Mathematics {
     }
 
     public int[] multPMatrix(double[][] mat, Point3D p) {
-        int i, j, k, m, n;
+        int i, k;
         int[] vecP = {(int)p.getX(), (int)p.getY(), (int)p.getZ(), 1};
         int rowsA = mat.length;
         int colsA = mat[0].length;
-        int rowsB = vecP.length;
         int[] resVec = new int[rowsA];
         for (i = 0; i < rowsA; i++) {
             for (k = 0; k < colsA; k++) {
@@ -39,9 +38,9 @@ public class Mathematics {
 
 
     public double[] multPP(Point3D p1, Point3D p2) {
-        int i, j, k, m, n;
-        double[] vecP1 = {p1.getX(), p1.getY(), p1.getZ(), 1};
-        double[] vecP2 = {p1.getX(), p1.getY(), p1.getZ(), 1};
+        int i, k;
+        double[] vecP1 = {p1.getX(), p1.getY(), p1.getZ()};
+        double[] vecP2 = {p1.getX(), p1.getY(), p1.getZ()};
         /*
         int rowsA = vecP1.length;
         int colsB = vecP2.length;
@@ -78,6 +77,4 @@ public class Mathematics {
             System.out.println();
         }
     }
-
-
 }
