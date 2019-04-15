@@ -1,6 +1,7 @@
 public class Transform {
     public static final int SIZE_ROW = 4;
     public static final int SIZE_COL = 4;
+    private Matrix matrix = new Matrix();
 
     public double[][] Translate(double delta_x, double delta_y, double delta_z){
         double[][] transMatrix = new double[SIZE_ROW][SIZE_COL];

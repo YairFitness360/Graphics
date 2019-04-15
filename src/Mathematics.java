@@ -4,6 +4,10 @@ public class Mathematics {
 
     }
 
+    public double getVecNorm(double[] x) {
+        return Math.sqrt(Math.pow(x[0], 2) + Math.pow(x[1], 2) + Math.pow(x[2], 2));
+    }
+
     public double[][] multMatrix(double[][] mat1, double[][] mat2) {
         int i, j, k, m, n;
         int rowsA = mat1.length;

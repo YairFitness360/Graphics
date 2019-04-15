@@ -22,6 +22,12 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double Dx;
     private double Dy;
     private char curPosTrans;
+    private double[][] VM1;
+    private double[][] P;
+    private double[][] VM2;
+    private double[][] T1;
+    private double[][] T2;
+    private double[][] AT;
 
     public MyCanvas(ArrayList<Point3D> vertexes, ArrayList<int[]> polygons,
                     Point3D position, Point3D lookAt, Point3D up, double l, double r,
@@ -49,19 +55,33 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
+
+        double[][] T = createT();
+        double[][] R = createR();
+        VM1 = math.multMatrix(R, T);
+        P = matrix.create3DMatrix();
+        P[2][2] = 0;
+
+        double wcx = l + ((r - l) / 2);
+        double wcy = b + ((t - b) / 2);
+        double[][] S = trans.Scale(vw / (r - l),- vh / (t - b),1);
+        T1 = trans.Translate(-wcx,-wcy,0);;
+        T2 = trans.Translate(20 + (vw / 2),20 + (vh / 2),0);
+        VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
+        AT = TT;
     }
 
     private char findMousePos(double x,double y){
-        if (x < 20 || y<20 || x> vw+20 || y> vh +20){
+        if (x < 20 || y < 20 || x > vw + 20 || y > vh + 20) {
             System.out.println("-");
             return '-';
-        }else if(x>= vw/3 +20 && x <= 2*vw/3 +20 && y>= vh/3 +20 && y < 2*vh/3 + 20){
+        } else if(x >= vw / 3 +20 && x <= 2 * vw / 3 + 20 && y >= vh / 3 +20 && y < 2 * vh / 3 + 20) {
             System.out.println("T");
             return 'T';
-        }else if ((x < vw/3 +20|| x> 2*vw/3 +20)&&(y < vh/3 +20|| y> 2*vh/3 +20)){
+        } else if((x < vw / 3 +20 || x > 2 * vw / 3 + 20) && (y < vh / 3 + 20 || y> 2 * vh / 3 +20)) {
             System.out.println("R");
             return 'R';
-        }else{
+        } else{
             System.out.println("S");
             return 'S';
         }
@@ -83,24 +103,56 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
     }
     private void execTranslate() {
-        CT = trans.Translate(Dx-Sx,
-                Dy-Sy,0);
+        //CT = trans.Translate(Dx-Sx, Dy-Sy,0);
+        CT = trans.Translate(800/vw, -800/vh, 0);
     }
-    private void execeRotation() {
 
+    public double getAngleFromVectorToXAxis(double[] vector) {
+        double angle;
+        float RAD2DEG = 180.0f / 3.14159f;
+        // atan2 receives first Y second X
+        angle = Math.atan2(vector[1], vector[0]) * RAD2DEG;
+        if(angle < 0) angle += 360.0f;
+        return angle;
     }
+
+    private void execeRotation() {
+        double[] vectorStart = new double[2];
+        double[] vectorEnd = new double[2];
+
+        //vector start = (x of start point - x of center point,y of start point - y of center point)
+        vectorStart[0] = Sx - Px;
+        vectorStart[1] = Sy - Py;
+        //vector start = (x of end point - x of center point,y of end point - y of center point)
+        vectorEnd[0] = Dx - Px;
+        vectorEnd[1] = Dy - Py;
+
+        double angleStart = getAngleFromVectorToXAxis(vectorStart);
+        double angleEnd = getAngleFromVectorToXAxis(vectorEnd);
+        double angleFinish = angleStart - angleEnd;
+
+        double[][] Tl = matrix.create3DMatrix();
+        double[] d = {Lx - Px, Ly - Py, Lz - Pz};
+        Tl[2][3] = math.getVecNorm(d);
+        CT = math.multMatrix(T2, math.multMatrix(trans.Rotate(Math.toRadians(angleFinish)), Tl));
+        AT = math.multMatrix(CT, AT);
+        // Reset CT to I.
+        CT = matrix.create3DMatrix();
+    }
+
+
     private void execScale() {
 
     }
-        @Override
+    @Override
     public void mouseClicked(MouseEvent e) {
 
     }
     public void mousePressed(MouseEvent e) {
         System.out.println("Mouse Pressed");
-        Sx=e.getX();
-        Sy=e.getY();
-        curPosTrans=findMousePos(Sx,Sy);
+        Sx = e.getX();
+        Sy = e.getY();
+        curPosTrans = findMousePos(Sx, Sy);
     }
     public void mouseListener(MouseEvent e) {
 
@@ -138,19 +190,8 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
-        double[][] T = createT();
-        double[][] R = createR();
-        double[][] VM1 = math.multMatrix(R, T);
-        double[][] P = matrix.create3DMatrix();
 
-        P[2][2] = 0;
-        double wcx = l + ((r - l) / 2);
-        double wcy = b + ((t - b) / 2);
-        double[][] S = trans.Scale(vw / (r - l),- vh / (t - b),1);
-        double[][] T1 = trans.Translate(-wcx,-wcy,0);;
-        double[][] T2 = trans.Translate(20 + (vw / 2),20 + (vh / 2),0);
-        double[][] VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
-        double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT,(math.multMatrix(TT, VM1))))));
+        double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT, (math.multMatrix(AT, VM1))))));
 
         ArrayList<Point2D> vertexesTag = new ArrayList<>();
         for (Point3D p : vertexes) {
@@ -174,16 +215,16 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     public double[][] createR() {
-        double z_norm = Math.sqrt(Math.pow(Px-Lx, 2) + Math.pow(Py-Ly, 2) + Math.pow(Pz-Lz, 2));
         double[] sub_p_l = {Px - Lx, Py - Ly, Pz - Lz};
+        double z_norm = math.getVecNorm(sub_p_l);
         double[] zv = math.devideVec(sub_p_l, z_norm);
 
         Point3D zv_point = new Point3D(zv[0], zv[1], zv[2]);
         double[] mult_v_z = math.multPP(new Point3D(Vx, Vy, Vz), zv_point);
-        double x_norm = Math.sqrt(Math.pow(mult_v_z[0], 2) + Math.pow(mult_v_z[1], 2) + Math.pow(mult_v_z[2], 2));
+        double x_norm = math.getVecNorm(mult_v_z);
         double[] xv = math.devideVec(mult_v_z, x_norm);
 
-        double[] yv = math.multPP(zv_point,new Point3D(xv[0], xv[1], xv[2]));
+        double[] yv = math.multPP(zv_point, new Point3D(xv[0], xv[1], xv[2]));
 
         double[][] transMatrix = matrix.create3DMatrix();
         transMatrix[0][0] = xv[0];
