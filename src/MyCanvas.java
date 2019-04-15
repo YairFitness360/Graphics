@@ -1,8 +1,9 @@
 import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 
-public class MyCanvas extends Canvas {
+public class MyCanvas extends Canvas implements MouseListener, MouseMotionListener, KeyListener {
     private double Px, Py, Pz;
     private double Lx, Ly, Lz;
     private double Vx, Vy, Vz;
@@ -16,6 +17,11 @@ public class MyCanvas extends Canvas {
     private Mathematics math = new Mathematics();
     private Transform trans = new Transform();
     private Matrix matrix;
+    private double Sx;
+    private double Sy;
+    private double Dx;
+    private double Dy;
+    private char curPosTrans;
 
     public MyCanvas(ArrayList<Point3D> vertexes, ArrayList<int[]> polygons,
                     Point3D position, Point3D lookAt, Point3D up, double l, double r,
@@ -40,8 +46,96 @@ public class MyCanvas extends Canvas {
         this.matrix = new Matrix();
         this.CT = matrix.create3DMatrix();
         this.TT = matrix.create3DMatrix();
+        addMouseListener(this);
+        addMouseMotionListener(this);
+        addKeyListener(this);
     }
 
+    private char findMousePos(double x,double y){
+        if (x < 20 || y<20 || x> vw+20 || y> vh +20){
+            System.out.println("-");
+            return '-';
+        }else if(x>= vw/3 +20 && x <= 2*vw/3 +20 && y>= vh/3 +20 && y < 2*vh/3 + 20){
+            System.out.println("T");
+            return 'T';
+        }else if ((x < vw/3 +20|| x> 2*vw/3 +20)&&(y < vh/3 +20|| y> 2*vh/3 +20)){
+            System.out.println("R");
+            return 'R';
+        }else{
+            System.out.println("S");
+            return 'S';
+        }
+    }
+
+    private void execAction(){
+        switch(this.curPosTrans){
+            case 'T':
+                execTranslate();
+                break;
+            case 'R':
+                execeRotation();
+                break;
+            case 'S':
+                execScale();
+                break;
+            default:
+                break;
+        }
+    }
+    private void execTranslate() {
+        CT = trans.Translate(Dx-Sx,
+                Dy-Sy,0);
+    }
+    private void execeRotation() {
+
+    }
+    private void execScale() {
+
+    }
+        @Override
+    public void mouseClicked(MouseEvent e) {
+
+    }
+    public void mousePressed(MouseEvent e) {
+        System.out.println("Mouse Pressed");
+        Sx=e.getX();
+        Sy=e.getY();
+        curPosTrans=findMousePos(Sx,Sy);
+    }
+    public void mouseListener(MouseEvent e) {
+
+    }
+    public void mouseReleased(MouseEvent e) {
+
+    }
+    public void mouseEntered(MouseEvent e) {
+
+    }
+    public void mouseExited(MouseEvent e) {
+
+    }
+    public void mouseDragged(MouseEvent e) {
+        System.out.println("Mouse Dragged");
+        Dx=e.getX();
+        Dy=e.getY();
+        execAction();
+        this.repaint();
+
+
+
+    }
+    public void mouseMoved(MouseEvent e) {
+
+    }
+    public void keyTyped(KeyEvent e) {
+
+    }
+    public void keyPressed(KeyEvent e) {
+
+    }
+    public void keyReleased(KeyEvent e) {
+
+    }
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
         double[][] T = createT();
@@ -103,4 +197,5 @@ public class MyCanvas extends Canvas {
         transMatrix[2][2] = zv[2];
         return transMatrix;
     }
+
 }
