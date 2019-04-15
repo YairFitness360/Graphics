@@ -1,19 +1,29 @@
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
+
 import java.util.ArrayList;
 
 
 public class MyCanvas extends Canvas implements MouseListener, MouseMotionListener, KeyListener {
+
+    private double l, r, b, t;
     private double Px, Py, Pz;
     private double Lx, Ly, Lz;
     private double Vx, Vy, Vz;
-    private double l, r, b, t;
+    private double[][] VM1;
+    private double[][] P;
     private double[][] CT;
     private double[][] TT;
+    private double[][] T1;
+    private double[][] T2;
+    private double[][] AT;
+    private double[][] VM2;
     private int vw;
     private int vh;
-    private ArrayList<Point3D> vertexes;
-    private ArrayList<int[]> polygons;
+    private ArrayList<Point3D> vertexes= new ArrayList<>();;
+    private ArrayList<int[]> polygons= new ArrayList<>();;
     private Mathematics math = new Mathematics();
     private Transform trans = new Transform();
     private Matrix matrix;
@@ -22,53 +32,36 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double Dx;
     private double Dy;
     private char curPosTrans;
-    private double[][] VM1;
-    private double[][] P;
-    private double[][] VM2;
-    private double[][] T1;
-    private double[][] T2;
-    private double[][] AT;
 
-    public MyCanvas(ArrayList<Point3D> vertexes, ArrayList<int[]> polygons,
-                    Point3D position, Point3D lookAt, Point3D up, double l, double r,
-                    double b, double t, int vw, int vh) {
-        this.vertexes = vertexes;
-        this.polygons = polygons;
-        this.Px = position.getX();
-        this.Py = position.getY();
-        this.Pz = position.getZ();
-        this.Lx = lookAt.getX();
-        this.Ly = lookAt.getY();
-        this.Lz = lookAt.getZ();
-        this.Vx = up.getX();
-        this.Vy = up.getY();
-        this.Vz = up.getZ();
-        this.l = l;
-        this.r = r;
-        this.b = b;
-        this.t = t;
-        this.vw = vw;
-        this.vh = vh;
-        this.matrix = new Matrix();
-        this.CT = matrix.create3DMatrix();
-        this.TT = matrix.create3DMatrix();
+    private File fileView = new File ("example3d.viw");
+    private File fileScn= new File ("example3d.scn");
+
+    public MyCanvas() {
+        init();
+    }
+
+    private void init() {
+        readView();
+        readScn();
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
+        setSize(vw + 40,vh + 40);
+        this.matrix = new Matrix();
+        this.CT = matrix.create3DMatrix();
+        this.TT = matrix.create3DMatrix();
 
         double[][] T = createT();
         double[][] R = createR();
         VM1 = math.multMatrix(R, T);
         P = matrix.create3DMatrix();
         P[2][2] = 0;
-
         double wcx = l + ((r - l) / 2);
         double wcy = b + ((t - b) / 2);
         double[][] S = trans.Scale(vw / (r - l),- vh / (t - b),1);
         T1 = trans.Translate(-wcx,-wcy,0);;
         T2 = trans.Translate(20 + (vw / 2),20 + (vh / 2),0);
         VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
-        AT = TT;
     }
 
     private char findMousePos(double x,double y){
@@ -103,8 +96,8 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
     }
     private void execTranslate() {
-        //CT = trans.Translate(Dx-Sx, Dy-Sy,0);
-        CT = trans.Translate(800/vw, -800/vh, 0);
+        CT = trans.Translate(Dx-Sx, Dy-Sy,0);
+       // CT = trans.Translate(800/vw, -800/vh, 0);
     }
 
     public double getAngleFromVectorToXAxis(double[] vector) {
@@ -183,7 +176,26 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
     }
     public void keyPressed(KeyEvent e) {
-
+        switch (e.getKeyChar()) {
+            case 'C':
+                break;
+            case 'R':
+                break;
+            case 'L':
+                loadFile();
+                break;
+            case 'X':
+                break;
+            case 'Y':
+                break;
+            case 'Z':
+                break;
+            case 'Q':
+                System.exit(0);
+            default:
+                break;
+        }
+        System.out.println(e.getKeyChar());
     }
     public void keyReleased(KeyEvent e) {
 
@@ -191,7 +203,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
 
-        double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT, (math.multMatrix(AT, VM1))))));
+        double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT,(math.multMatrix(TT, VM1))))));
 
         ArrayList<Point2D> vertexesTag = new ArrayList<>();
         for (Point3D p : vertexes) {
@@ -238,5 +250,107 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         transMatrix[2][2] = zv[2];
         return transMatrix;
     }
+    private String getExtension(String fileName){
+        String extension = "";
 
+        int i = fileName.lastIndexOf('.');
+        if (i > 0) {
+            extension = fileName.substring(i+1);
+        }
+        return extension;
+    }
+    private void loadFile(){
+        JFileChooser jfc = new JFileChooser();
+        String workingDir = System.getProperty("user.dir");
+
+        jfc.setCurrentDirectory(new File(workingDir));
+
+        int returnValue = jfc.showOpenDialog(jfc.getParent());
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = jfc.getSelectedFile();
+            String extension = getExtension(selectedFile.getName());
+            if(extension.equals("scn")){
+                fileScn= new File (selectedFile.getName());
+                init();
+                this.repaint();
+            }else if (extension.equals("viw")){
+                fileView= new File (selectedFile.getName());
+                init();
+                this.repaint();
+            }
+            System.out.println(selectedFile.getAbsolutePath());
+        }
+    }
+    public void  readScn() {
+        vertexes.clear();
+        polygons.clear();
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileScn), "Cp1252"));
+            String line;
+            line = br.readLine();
+            int size_ver = Integer.parseInt(line);
+            System.out.println(size_ver);
+            for (int i = 0; i < size_ver; i++) {
+                line = br.readLine();
+                String[] splitStr = line.split("\\s+");
+                Point3D point = new Point3D(Double.parseDouble(splitStr[0]), Double.parseDouble(splitStr[1]), Double.parseDouble(splitStr[2]));
+                vertexes.add(point);
+            }
+            line = br.readLine();
+            int size_poly = Integer.parseInt(line);
+            for (int i = 0; i < size_poly; i++) {
+                line = br.readLine();
+                String[] splitStr = line.split("\\s+");
+                int[] edges={Integer.parseInt(splitStr[0]),Integer.parseInt(splitStr[1])};
+                polygons.add(edges);
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void readView() {
+
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileView), "Cp1252"));
+            String line;
+            line = br.readLine();
+            String position_str = line.replace("Position ","");
+            String[] splitStr = position_str.split("\\s+");
+            Point3D position = new Point3D(Double.parseDouble(splitStr[0]), Double.parseDouble(splitStr[1]), Double.parseDouble(splitStr[2]));
+            this.Px = position.getX();
+            this.Py = position.getY();
+            this.Pz = position.getZ();
+            line = br.readLine();
+            String lookAt_str = line.replace("LookAt ","");
+            splitStr = lookAt_str.split("\\s+");
+            Point3D lookAt = new Point3D(Double.parseDouble(splitStr[0]), Double.parseDouble(splitStr[1]), Double.parseDouble(splitStr[2]));
+            this.Lx = lookAt.getX();
+            this.Ly = lookAt.getY();
+            this.Lz = lookAt.getZ();
+            line = br.readLine();
+            String up_str = line.replace("Up ","");
+            splitStr = up_str.split("\\s+");
+            Point3D up = new Point3D(Double.parseDouble(splitStr[0]), Double.parseDouble(splitStr[1]), Double.parseDouble(splitStr[2]));
+            this.Vx = up.getX();
+            this.Vy = up.getY();
+            this.Vz = up.getZ();
+            line = br.readLine();
+            String Window_str = line.replace("Window ","");
+            splitStr = Window_str.split("\\s+");
+            l=Double.parseDouble(splitStr[0]);
+            r=Double.parseDouble(splitStr[1]);
+            b=Double.parseDouble(splitStr[2]);
+            t=Double.parseDouble(splitStr[3]);
+            line = br.readLine();
+            String Viewport_str = line.replace("Viewport ","");
+            splitStr = Viewport_str.split("\\s+");
+            vw=Integer.parseInt(splitStr[0]);
+            vh=Integer.parseInt(splitStr[1]);
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
