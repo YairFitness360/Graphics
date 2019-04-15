@@ -71,8 +71,10 @@ public class Mathematics {
             System.out.println();
         }
     }
-
-    public double getNorm(double[] x) {
-        return Math.sqrt(Math.pow(x[0], 2) + Math.pow(x[1], 2) + Math.pow(x[2], 2));
+    public void printVec(double[] mat) {
+        for (int i = 0; i < mat.length; i++) {
+            System.out.print(mat[i] + " ");
+        }
+        System.out.println();
     }
 }

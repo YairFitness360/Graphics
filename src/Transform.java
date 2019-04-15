@@ -2,17 +2,7 @@ public class Transform {
     public static final int SIZE_ROW = 4;
     public static final int SIZE_COL = 4;
 
-    public double[][] Translate(int delta_x, int delta_y){
-        double[][] transMatrix = new double[SIZE_ROW - 1][SIZE_COL - 1];
-        transMatrix[0][0]=1;
-        transMatrix[0][3]=delta_x;
-        transMatrix[1][1]=1;
-        transMatrix[1][3]=delta_y;
-        transMatrix[2][2]=1;
-        return transMatrix;
-    }
-
-    public double[][] Translate(int delta_x, int delta_y, int delta_z){
+    public double[][] Translate(double delta_x, double delta_y, double delta_z){
         double[][] transMatrix = new double[SIZE_ROW][SIZE_COL];
         transMatrix[0][0]=1;
         transMatrix[0][3]=delta_x;
@@ -24,7 +14,7 @@ public class Transform {
         return transMatrix;
     }
 
-    public double[][] Scale(int a, int b, int c) {
+    public double[][] Scale(double a, double b, double c) {
         double[][] scaleMatrix = new double[SIZE_ROW][SIZE_COL];
         scaleMatrix[0][0] = a;
         scaleMatrix[1][1] = b;
