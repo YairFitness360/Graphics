@@ -4,35 +4,28 @@ public class Transform {
     private Matrix matrix = new Matrix();
 
     public double[][] Translate(double delta_x, double delta_y, double delta_z){
-        double[][] transMatrix = new double[SIZE_ROW][SIZE_COL];
-        transMatrix[0][0]=1;
-        transMatrix[0][3]=delta_x;
-        transMatrix[1][1]=1;
-        transMatrix[1][3]=delta_y;
-        transMatrix[2][2]=1;
-        transMatrix[2][3]=delta_z;
-        transMatrix[3][3]=1;
+        double[][] transMatrix = matrix.create3DMatrix();
+        transMatrix[0][3] = delta_x;
+        transMatrix[1][3] = delta_y;
+        transMatrix[2][3] = delta_z;
         return transMatrix;
     }
 
     public double[][] Scale(double a, double b, double c) {
-        double[][] scaleMatrix = new double[SIZE_ROW][SIZE_COL];
+        double[][] scaleMatrix = matrix.create3DMatrix();
         scaleMatrix[0][0] = a;
         scaleMatrix[1][1] = b;
         scaleMatrix[2][2] = c;
-        scaleMatrix[3][3] = 1;
         return scaleMatrix;
     }
 
     public double[][] Rotate(double teta) {
-        double[][] rotationMatrix = new double[SIZE_ROW][SIZE_COL];
+        double[][] rotationMatrix = matrix.create3DMatrix();
         double angleInRadian = Math.toRadians(teta);
         rotationMatrix[0][0] = Math.cos(angleInRadian);
         rotationMatrix[0][1] = Math.sin(angleInRadian);
         rotationMatrix[1][0] = -Math.sin(angleInRadian);
         rotationMatrix[1][1] = Math.cos(angleInRadian);
-        rotationMatrix[2][2] = 1;
-        rotationMatrix[3][3] = 1;
         return rotationMatrix;
     }
 
@@ -44,12 +37,12 @@ public class Transform {
         refMatrix[3][3] = 1;
         return refMatrix;
     }
+
     public Point2D point3DTo2D(Point3D p3) {
         double x = p3.getX();
         double y = p3.getY();
         double z = p3.getZ();
         //not done
-
         return new Point2D(2,4);
     }
 }

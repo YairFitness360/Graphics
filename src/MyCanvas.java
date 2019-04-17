@@ -2,37 +2,23 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-
 import java.util.ArrayList;
 
-
 public class MyCanvas extends Canvas implements MouseListener, MouseMotionListener, KeyListener {
-
     private double l, r, b, t;
     private double Px, Py, Pz;
     private double Lx, Ly, Lz;
     private double Vx, Vy, Vz;
-    private double[][] VM1;
-    private double[][] P;
-    private double[][] CT;
-    private double[][] TT;
-    private double[][] T1;
-    private double[][] T2;
-    private double[][] AT;
-    private double[][] VM2;
-    private int vw;
-    private int vh;
-    private ArrayList<Point3D> vertexes= new ArrayList<>();;
-    private ArrayList<int[]> polygons= new ArrayList<>();;
+    private double[][] VM1, P, CT, TT, T1, T2, AT, VM2;
+    private int vw, vh;
+    private ArrayList<Point3D> vertexes = new ArrayList<>();;
+    private ArrayList<int[]> polygons = new ArrayList<>();;
     private Mathematics math = new Mathematics();
     private Transform trans = new Transform();
     private Matrix matrix;
-    private double Sx;
-    private double Sy;
-    private double Dx;
-    private double Dy;
+    private double Sx, Sy;
+    private double Dx, Dy;
     private char curPosTrans;
-
     private File fileView = new File ("example3d.viw");
     private File fileScn= new File ("example3d.scn");
 
@@ -50,7 +36,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         this.matrix = new Matrix();
         this.CT = matrix.create3DMatrix();
         this.TT = matrix.create3DMatrix();
-
+        this.AT = TT;
         double[][] T = createT();
         double[][] R = createR();
         VM1 = math.multMatrix(R, T);
@@ -95,9 +81,9 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 break;
         }
     }
+
     private void execTranslate() {
-        CT = trans.Translate(Dx-Sx, Dy-Sy,0);
-       // CT = trans.Translate(800/vw, -800/vh, 0);
+        CT = trans.Translate(Dx - Sx, Dy - Sy,0);
     }
 
     public double getAngleFromVectorToXAxis(double[] vector) {
@@ -105,76 +91,80 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         float RAD2DEG = 180.0f / 3.14159f;
         // atan2 receives first Y second X
         angle = Math.atan2(vector[1], vector[0]) * RAD2DEG;
-        if(angle < 0) angle += 360.0f;
+        if (angle < 0) angle += 360.0f;
         return angle;
     }
 
     private void execeRotation() {
-        double[] vectorStart = new double[2];
-        double[] vectorEnd = new double[2];
+        double[] vecStart = new double[2];
+        double[] vecEnd = new double[2];
+        
+        double centerX = (vw / 2) + 20;
+        double centerY = (vh / 2) + 20;
 
         //vector start = (x of start point - x of center point,y of start point - y of center point)
-        vectorStart[0] = Sx - Px;
-        vectorStart[1] = Sy - Py;
+        vecStart[0] = Sx - centerX;
+        vecStart[1] = Sy - centerY;
+
         //vector start = (x of end point - x of center point,y of end point - y of center point)
-        vectorEnd[0] = Dx - Px;
-        vectorEnd[1] = Dy - Py;
+        vecEnd[0] = Dx - centerX;
+        vecEnd[1] = Dy - centerY;
 
-        double angleStart = getAngleFromVectorToXAxis(vectorStart);
-        double angleEnd = getAngleFromVectorToXAxis(vectorEnd);
-        double angleFinish = angleStart - angleEnd;
+        double angleStart = getAngleFromVectorToXAxis(vecStart);
+        double angleEnd = getAngleFromVectorToXAxis(vecEnd);
+        double angleFinish = angleEnd - angleStart;
 
-        double[][] Tl = matrix.create3DMatrix();
-        double[] d = {Lx - Px, Ly - Py, Lz - Pz};
-        Tl[2][3] = math.getVecNorm(d);
-        CT = math.multMatrix(T2, math.multMatrix(trans.Rotate(Math.toRadians(angleFinish)), Tl));
-        AT = math.multMatrix(CT, AT);
-        // Reset CT to I.
-        CT = matrix.create3DMatrix();
+        CT = trans.Rotate(Math.toRadians(angleFinish));
+        CT = math.multMatrix(trans.Translate(Lx, Ly, Lz), math.multMatrix(CT, trans.Translate(-Lx, -Ly, -Lz)));
     }
-
 
     private void execScale() {
 
     }
+
     @Override
     public void mouseClicked(MouseEvent e) {
 
     }
+
     public void mousePressed(MouseEvent e) {
         System.out.println("Mouse Pressed");
         Sx = e.getX();
         Sy = e.getY();
         curPosTrans = findMousePos(Sx, Sy);
     }
+
     public void mouseListener(MouseEvent e) {
 
     }
+
     public void mouseReleased(MouseEvent e) {
 
     }
     public void mouseEntered(MouseEvent e) {
 
     }
+
     public void mouseExited(MouseEvent e) {
 
     }
+
     public void mouseDragged(MouseEvent e) {
         System.out.println("Mouse Dragged");
         Dx=e.getX();
         Dy=e.getY();
         execAction();
         this.repaint();
-
-
-
     }
+
     public void mouseMoved(MouseEvent e) {
 
     }
+
     public void keyTyped(KeyEvent e) {
 
     }
+
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyChar()) {
             case 'C':
@@ -197,13 +187,15 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
         System.out.println(e.getKeyChar());
     }
+
     public void keyReleased(KeyEvent e) {
 
     }
+
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
 
-        double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT,(math.multMatrix(TT, VM1))))));
+        double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT, (math.multMatrix(AT, VM1))))));
 
         ArrayList<Point2D> vertexesTag = new ArrayList<>();
         for (Point3D p : vertexes) {
@@ -250,6 +242,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         transMatrix[2][2] = zv[2];
         return transMatrix;
     }
+
     private String getExtension(String fileName){
         String extension = "";
 
@@ -259,6 +252,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
         return extension;
     }
+
     private void loadFile(){
         JFileChooser jfc = new JFileChooser();
         String workingDir = System.getProperty("user.dir");
@@ -281,6 +275,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             System.out.println(selectedFile.getAbsolutePath());
         }
     }
+
     public void  readScn() {
         vertexes.clear();
         polygons.clear();
@@ -311,7 +306,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     public void readView() {
-
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileView), "Cp1252"));
             String line;

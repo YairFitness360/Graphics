@@ -1,18 +1,13 @@
 public class Mathematics {
 
-    public Mathematics() {
-
-    }
-
     public double getVecNorm(double[] x) {
         return Math.sqrt(Math.pow(x[0], 2) + Math.pow(x[1], 2) + Math.pow(x[2], 2));
     }
 
     public double[][] multMatrix(double[][] mat1, double[][] mat2) {
-        int i, j, k, m, n;
+        int i, j, k;
         int rowsA = mat1.length;
         int colsA = mat1[0].length;
-        int rowsB = mat2.length;
         int colsB = mat2[0].length;
         double[][] resMatrix = new double[rowsA][colsB];
         for (i = 0; i < rowsA; i++) {
@@ -44,7 +39,6 @@ public class Mathematics {
 
 
     public double[] multPP(Point3D p1, Point3D p2) {
-        int i, k;
         double[] vecP1 = {p1.getX(), p1.getY(), p1.getZ()};
         double[] vecP2 = {p2.getX(), p2.getY(), p2.getZ()};
 
