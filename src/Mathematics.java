@@ -1,3 +1,5 @@
+import java.awt.*;
+
 public class Mathematics {
 
     public double getVecNorm(double[] x) {
@@ -74,5 +76,10 @@ public class Mathematics {
             System.out.print(mat[i] + " ");
         }
         System.out.println();
+    }
+
+    public static double distance(double p1_x, double p1_y, double p2_x, double p2_y) {
+        return Math.sqrt(Math.pow(p1_x - p2_x, 2)
+                + Math.pow(p1_y - p2_y, 2));
     }
 }

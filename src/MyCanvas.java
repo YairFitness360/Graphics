@@ -18,9 +18,11 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private Matrix matrix;
     private double Sx, Sy;
     private double Dx, Dy;
+    private char rotateAxis = 'z';
     private char curPosTrans;
     private File fileView = new File ("example3d.viw");
     private File fileScn= new File ("example3d.scn");
+    private double centerX, centerY;
 
     public MyCanvas() {
         init();
@@ -48,6 +50,8 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         T1 = trans.Translate(-wcx,-wcy,0);;
         T2 = trans.Translate(20 + (vw / 2),20 + (vh / 2),0);
         VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
+        centerX = (vw / 2) + 20;
+        centerY = (vh / 2) + 20;
     }
 
     private char findMousePos(double x,double y){
@@ -98,9 +102,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private void execeRotation() {
         double[] vecStart = new double[2];
         double[] vecEnd = new double[2];
-        
-        double centerX = (vw / 2) + 20;
-        double centerY = (vh / 2) + 20;
 
         //vector start = (x of start point - x of center point,y of start point - y of center point)
         vecStart[0] = Sx - centerX;
@@ -113,13 +114,16 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         double angleStart = getAngleFromVectorToXAxis(vecStart);
         double angleEnd = getAngleFromVectorToXAxis(vecEnd);
         double angleFinish = angleEnd - angleStart;
+        CT = trans.Rotate(angleFinish, rotateAxis);
 
-        CT = trans.Rotate(Math.toRadians(angleFinish));
-        CT = math.multMatrix(trans.Translate(Lx, Ly, Lz), math.multMatrix(CT, trans.Translate(-Lx, -Ly, -Lz)));
+        //CT = math.multMatrix(trans.Translate(-centerX, -centerY, 0), math.multMatrix(CT, trans.Translate(centerX, centerY, 0)));
     }
 
     private void execScale() {
-
+        double radiusPStart = math.distance(Sx, Sy, centerX, centerY);
+        double radiusPEnd = math.distance(Dx, Dy, centerX, centerY);
+        double scaleParameter = radiusPEnd / radiusPStart;
+        CT = trans.Scale(scaleParameter, scaleParameter, scaleParameter);
     }
 
     @Override
@@ -139,7 +143,9 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     public void mouseReleased(MouseEvent e) {
-
+        TT = math.multMatrix(CT, TT);
+        CT = matrix.create3DMatrix();
+        this.repaint();
     }
     public void mouseEntered(MouseEvent e) {
 
@@ -151,8 +157,8 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
     public void mouseDragged(MouseEvent e) {
         System.out.println("Mouse Dragged");
-        Dx=e.getX();
-        Dy=e.getY();
+        Dx = e.getX();
+        Dy = e.getY();
         execAction();
         this.repaint();
     }
@@ -175,10 +181,13 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 loadFile();
                 break;
             case 'X':
+                this.rotateAxis = 'x';
                 break;
             case 'Y':
+                this.rotateAxis = 'y';
                 break;
             case 'Z':
+                this.rotateAxis = 'z';
                 break;
             case 'Q':
                 System.exit(0);
@@ -195,7 +204,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
 
-        double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT, (math.multMatrix(AT, VM1))))));
+        double[][] TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT, (math.multMatrix(TT, VM1))))));
 
         ArrayList<Point2D> vertexesTag = new ArrayList<>();
         for (Point3D p : vertexes) {

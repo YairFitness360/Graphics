@@ -19,13 +19,29 @@ public class Transform {
         return scaleMatrix;
     }
 
-    public double[][] Rotate(double teta) {
+    public double[][] Rotate(double teta, char rotateAxis) {
         double[][] rotationMatrix = matrix.create3DMatrix();
         double angleInRadian = Math.toRadians(teta);
-        rotationMatrix[0][0] = Math.cos(angleInRadian);
-        rotationMatrix[0][1] = Math.sin(angleInRadian);
-        rotationMatrix[1][0] = -Math.sin(angleInRadian);
-        rotationMatrix[1][1] = Math.cos(angleInRadian);
+        switch(rotateAxis) {
+            case 'z':
+                rotationMatrix[0][0] = Math.cos(angleInRadian);
+                rotationMatrix[0][1] = Math.sin(angleInRadian);
+                rotationMatrix[1][0] = -Math.sin(angleInRadian);
+                rotationMatrix[1][1] = Math.cos(angleInRadian);
+            case 'x':
+                rotationMatrix[1][1] = Math.cos(angleInRadian);
+                rotationMatrix[2][1] = Math.sin(angleInRadian);
+                rotationMatrix[1][2] = -Math.sin(angleInRadian);
+                rotationMatrix[2][2] = Math.cos(angleInRadian);
+            case 'y':
+                rotationMatrix[0][0] = Math.cos(angleInRadian);
+                rotationMatrix[0][2] = -Math.sin(angleInRadian);
+                rotationMatrix[2][0] = Math.sin(angleInRadian);
+                rotationMatrix[2][2] = Math.cos(angleInRadian);
+            default:
+                break;
+        }
+
         return rotationMatrix;
     }
 
