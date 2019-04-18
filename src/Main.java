@@ -12,7 +12,7 @@ public class Main {
             System.out.println();
         }
 
-        MyCanvas canvas=new MyCanvas();
+        MyCanvas canvas = new MyCanvas();
         JFrame frame = new JFrame();
         frame.setSize(800 + 40,800 + 40);
 
