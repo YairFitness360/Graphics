@@ -10,12 +10,11 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double Px, Py, Pz;
     private double Lx, Ly, Lz;
     private double Vx, Vy, Vz;
-    private double[][] VM1, P, CT, TT, T1, T2, AT, VM2;
+    private double[][] VM1, P, CT, TT, VM2;
     private int vw, vh;
     private ArrayList<Point3D> vertexes = new ArrayList<>();
-    private int z=0;
+    private int z = 0;
     private ArrayList<int[]> polygons = new ArrayList<>();
-    ;
     private Mathematics math = new Mathematics();
     private Transform trans = new Transform();
     private Matrix matrix;
@@ -28,7 +27,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double centerX, centerY;
     private double[][] TrM;
     private boolean isClipping = true;
-    double xMin = 20, xMax , yMin = 20, yMax;
 
     public MyCanvas() {
         addMouseListener(this);
@@ -45,29 +43,24 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         this.matrix = new Matrix();
         centerX = (vw / 2) + 20;
         centerY = (vh / 2) + 20;
-        this.xMax=vw + 20;
-        this.yMax= vh + 20;
         createTrM();
     }
 
     private void createTrM() {
-        this.CT = matrix.create3DMatrix();
-        this.TT = matrix.create3DMatrix();
+        double[][] T1, T2;
+        this.CT = matrix.createInitMatrix();
+        this.TT = matrix.createInitMatrix();
         double[][] T = createT();
         double[][] R = createR();
         VM1 = math.multMatrix(R, T);
-        P = matrix.create3DMatrix();
+        P = matrix.createInitMatrix();
         P[2][2] = 0;
         double wcx = l + ((r - l) / 2);
         double wcy = b + ((t - b) / 2);
         double[][] S = trans.Scale(vw / (r - l), -vh / (t - b), 1);
-        T1 = trans.Translate(-wcx, -wcy, 0);
-        ;
-        T2 = trans.Translate(20 + (vw / 2), 20 + (vh / 2), 0);
+        T1 = trans.Translate(-wcx, -wcy);
+        T2 = trans.Translate(20 + (vw / 2), 20 + (vh / 2));
         VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
-
-        TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT, (math.multMatrix(TT, VM1))))));
-        this.TT = TrM;
     }
 
     private char findMousePos(double x, double y) {
@@ -103,10 +96,10 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     private void execTranslate() {
-        CT = trans.Translate(Dx - Sx, Dy - Sy, 0);
+        CT = trans.Translate((Dx - Sx) * ((r - l) / vw), (Dy - Sy) * (-((t - b) / vh)));
     }
 
-    public double getAngleFromVectorToXAxis(double[] vector) {
+    private double getAngleFromVectorToXAxis(double[] vector) {
         double angle;
         float RAD2DEG = 180.0f / 3.14159f;
         // atan2 receives first Y second X
@@ -129,9 +122,20 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
         double angleStart = getAngleFromVectorToXAxis(vecStart);
         double angleEnd = getAngleFromVectorToXAxis(vecEnd);
-        double angleFinish = angleEnd - angleStart;
+        double angleFinish = angleStart - angleEnd;
         CT = trans.Rotate(angleFinish, rotateAxis);
-        CT = math.multMatrix(trans.Translate(centerX, centerY, 0), math.multMatrix(CT, trans.Translate(-centerX, -centerY, 0)));
+        createCT();
+    }
+
+    private void createCT() {
+        double[] LookAt = {Lx, Ly, Lz};
+        double[] Position = {Px, Py, Pz};
+        double d = math.vecLength(math.subtract(LookAt, Position));
+        double[][] Tld = matrix.createInitMatrix();
+        double[][] Tl_d = matrix.createInitMatrix();
+        Tld[2][3] = d;
+        Tl_d[2][3] = -d;
+        CT = math.multMatrix(Tl_d, math.multMatrix(CT, Tld));
     }
 
     private void execScale() {
@@ -139,7 +143,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         double radiusPEnd = math.distance(Dx, Dy, centerX, centerY);
         double scaleParameter = radiusPEnd / radiusPStart;
         CT = trans.Scale(scaleParameter, scaleParameter, scaleParameter);
-        CT = math.multMatrix(trans.Translate(centerX, centerY, 0), math.multMatrix(CT, trans.Translate(-centerX, -centerY, 0)));
+        createCT();
     }
 
     @Override
@@ -159,8 +163,10 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     public void mouseReleased(MouseEvent e) {
-        TT = TrM;
-        CT = matrix.create3DMatrix();
+        Dx = e.getX();
+        Dy = e.getY();
+        TT = math.multMatrix(CT, TT);
+        CT = matrix.createInitMatrix();
         this.repaint();
     }
 
@@ -224,7 +230,13 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
-        TrM = math.multMatrix(CT, TT);
+
+        double[][] TrM = math.multMatrix(VM2, P);
+        TrM = math.multMatrix(TrM, CT);
+        TrM = math.multMatrix(TrM, TT);
+        TrM = math.multMatrix(TrM, VM1);
+
+        //TrM = math.multMatrix(CT, TT);
         ArrayList<Point2D> vertexesTag = new ArrayList<>();
         for (Point3D p : vertexes) {
             int[] pTag = math.multPMatrix(TrM, p);
@@ -252,15 +264,15 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
     }
 
-    public double[][] createT() {
-        double[][] transMatrix = matrix.create3DMatrix();
+    private double[][] createT() {
+        double[][] transMatrix = matrix.createInitMatrix();
         transMatrix[0][3] = -Px;
         transMatrix[1][3] = -Py;
         transMatrix[2][3] = -Pz;
         return transMatrix;
     }
 
-    public double[][] createR() {
+    private double[][] createR() {
         double[] sub_p_l = {Px - Lx, Py - Ly, Pz - Lz};
         double z_norm = math.getVecNorm(sub_p_l);
         double[] zv = math.devideVec(sub_p_l, z_norm);
@@ -272,7 +284,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
         double[] yv = math.multPP(zv_point, new Point3D(xv[0], xv[1], xv[2]));
 
-        double[][] transMatrix = matrix.create3DMatrix();
+        double[][] transMatrix = matrix.createInitMatrix();
         transMatrix[0][0] = xv[0];
         transMatrix[0][1] = xv[1];
         transMatrix[0][2] = xv[2];
@@ -318,7 +330,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
     }
 
-    public void readScn() {
+    private void readScn() {
         vertexes.clear();
         polygons.clear();
         try {
@@ -347,7 +359,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
     }
 
-    public void readView() {
+    private void readView() {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileView), "Cp1252"));
             String line;
@@ -389,18 +401,19 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             e.printStackTrace();
         }
     }
-    public boolean clip(Line2D.Double line) {
+
+    private boolean clip(Line2D.Double line) {
         int[] bitsS = initBits(line.x1,line.y1);
         int[] bitsE = initBits(line.x2,line.y2);
         int[] bitsResultAnd = {0, 0, 0, 0};
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             bitsResultAnd[i] = ((bitsS[i]!=0) && (bitsE[i]!=0))? 1:0;
         }
         if (checkBits(bitsResultAnd) != 0) {
             return false;
         }
         int[] bitsResultOr = {0, 0, 0, 0};
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             bitsResultOr[i] = ((bitsS[i]!=0) || (bitsE[i]!=0))? 1:0;
         }
         if (checkBits(bitsResultOr) == 0) {
@@ -411,16 +424,17 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
     }
 
-    public int checkBits(int[] bitsResult) {
+    private int checkBits(int[] bitsResult) {
         int sum = 0;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             sum += bitsResult[i];
         }
         return sum;
     }
 
-    public int[] initBits(double x,double y) {
+    private int[] initBits(double x,double y) {
         int[] bits = {0, 0, 0, 0};
+        double xMin = 20, xMax = vw + 20, yMin = 20, yMax = vh + 20;
         if (y < yMin) {
             bits[0] = 1;
         }
@@ -436,14 +450,14 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         return bits;
     }
 
-    public void fixLine(Line2D.Double line ,int[] bitsS,int[] bitsE) {
+    private void fixLine(Line2D.Double line ,int[] bitsS,int[] bitsE) {
         Point2D dL = new Point2D(20,20);
         Point2D uL = new Point2D(20,vw + 20);
         Point2D uR = new Point2D(vh + 20,vw + 20);
         Point2D dR = new Point2D(vh + 20,20);
         Point2D[] lines={dL,dR,uR,uL};
         while (checkBits(bitsS) != 0) {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 4; i++) {
                 if (bitsS[i] == 1) {
                     if (i==1){
                         int l=3;
@@ -468,9 +482,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
     }
 
-
-
-    public Point2D findIntersection(Point2D p1x,Point2D p1y,Point2D p2x,Point2D p2y) {
+    private Point2D findIntersection(Point2D p1x,Point2D p1y,Point2D p2x,Point2D p2y) {
         double a1 = p1y.getY() - p1x.getY();
         double b1 = p1x.getX() - p1y.getX();
         double c1 = a1*(p1x.getX()) + b1*(p1x.getY());
@@ -483,12 +495,12 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         return new Point2D((int)x, (int)y);
 
     }
+
     @Override
     public void componentMoved(ComponentEvent arg0) {}
+
     @Override
     public void componentHidden(ComponentEvent arg0) {}
-
-
 
     @Override
     public void componentResized(ComponentEvent arg0) {
@@ -503,7 +515,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         init();
         this.repaint();
         z++;
-
     }
 
     @Override

@@ -18,7 +18,6 @@ public class Mathematics {
                     double a = mat1[i][k];
                     double b = mat2[k][j];
                     double c = resMatrix[i][j] += mat1[i][k] * mat2[k][j];
-
                 }
             }
         }
@@ -38,7 +37,6 @@ public class Mathematics {
         }
         return resVec;
     }
-
 
     public double[] multPP(Point3D p1, Point3D p2) {
         double[] vecP1 = {p1.getX(), p1.getY(), p1.getZ()};
@@ -63,23 +61,53 @@ public class Mathematics {
         return res;
     }
 
-    public void printMatrix(double[][] mat) {
-        for (int i = 0; i < mat.length; i++) {
-            for (int j = 0; j < mat[i].length; j++) {
-                System.out.print(mat[i][j] + " ");
-            }
-            System.out.println();
-        }
-    }
-    public void printVec(double[] mat) {
-        for (int i = 0; i < mat.length; i++) {
-            System.out.print(mat[i] + " ");
-        }
-        System.out.println();
-    }
+//    public void printMatrix(double[][] mat) {
+//        for (int i = 0; i < mat.length; i++) {
+//            for (int j = 0; j < mat[i].length; j++) {
+//                System.out.print(mat[i][j] + " ");
+//            }
+//            System.out.println();
+//        }
+//    }
+//    public void printVec(double[] mat) {
+//        for (int i = 0; i < mat.length; i++) {
+//            System.out.print(mat[i] + " ");
+//        }
+//        System.out.println();
+//    }
 
-    public static double distance(double p1_x, double p1_y, double p2_x, double p2_y) {
+    public double distance(double p1_x, double p1_y, double p2_x, double p2_y) {
         return Math.sqrt(Math.pow(p1_x - p2_x, 2)
                 + Math.pow(p1_y - p2_y, 2));
+    }
+
+    public double vecLength(double[] vector) {
+        double sum = multVV(vector, vector);
+        return Math.sqrt(sum);
+    }
+
+    private double multVV(double[] vectorA, double[] vectorB) {
+        int vectorAsize = vectorA.length;
+        int vectorBsize = vectorB.length;
+        if (vectorAsize != vectorBsize) {
+            throw new IllegalArgumentException("A:size: " + vectorAsize + " did not match size " + vectorBsize + ".");
+        }
+        double sum = 0;
+        for (int i=0; i<vectorAsize;++i){
+            sum += vectorA[i]*vectorA[i];
+        }
+        return sum;
+    }
+
+    public double[] subtract(double[] vectorA, double[] vectorB) {
+        int vectorAsize = vectorA.length;
+        int vectorBsize = vectorB.length;
+        if (vectorAsize != vectorBsize) {
+            throw new IllegalArgumentException("A:size: " + vectorAsize + " did not match size " + vectorBsize + ".");
+        }
+        double[] answer = new double[vectorAsize];
+        for (int i = 0; i < vectorAsize; i++)
+            answer[i] = vectorA[i] - vectorB[i];
+        return answer;
     }
 }
