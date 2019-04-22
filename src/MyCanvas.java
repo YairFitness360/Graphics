@@ -1,18 +1,21 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Line2D;
 import java.io.*;
 import java.util.ArrayList;
 
-public class MyCanvas extends Canvas implements MouseListener, MouseMotionListener, KeyListener {
+public class MyCanvas extends Canvas implements MouseListener, MouseMotionListener, KeyListener,ComponentListener {
     private double l, r, b, t;
     private double Px, Py, Pz;
     private double Lx, Ly, Lz;
     private double Vx, Vy, Vz;
     private double[][] VM1, P, CT, TT, T1, T2, AT, VM2;
     private int vw, vh;
-    private ArrayList<Point3D> vertexes = new ArrayList<>();;
-    private ArrayList<int[]> polygons = new ArrayList<>();;
+    private ArrayList<Point3D> vertexes = new ArrayList<>();
+    private int z=0;
+    private ArrayList<int[]> polygons = new ArrayList<>();
+    ;
     private Mathematics math = new Mathematics();
     private Transform trans = new Transform();
     private Matrix matrix;
@@ -20,24 +23,30 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double Dx, Dy;
     private char rotateAxis = 'z';
     private char curPosTrans;
-    private File fileView = new File ("example3d.viw");
-    private File fileScn= new File ("example3d.scn");
+    private File fileView = new File("example3d.viw");
+    private File fileScn = new File("example3d.scn");
     private double centerX, centerY;
-    double[][] TrM;
+    private double[][] TrM;
+    private boolean isClipping = true;
+    double xMin = 20, xMax , yMin = 20, yMax;
+
     public MyCanvas() {
+        addMouseListener(this);
+        addMouseMotionListener(this);
+        addKeyListener(this);
+        addComponentListener(this);
         init();
     }
 
     private void init() {
         readView();
         readScn();
-        addMouseListener(this);
-        addMouseMotionListener(this);
-        addKeyListener(this);
-        setSize(vw + 40,vh + 40);
+        setSize(vw + 40, vh + 40);
         this.matrix = new Matrix();
         centerX = (vw / 2) + 20;
         centerY = (vh / 2) + 20;
+        this.xMax=vw + 20;
+        this.yMax= vh + 20;
         createTrM();
     }
 
@@ -51,32 +60,34 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         P[2][2] = 0;
         double wcx = l + ((r - l) / 2);
         double wcy = b + ((t - b) / 2);
-        double[][] S = trans.Scale(vw / (r - l), - vh / (t - b), 1);
-        T1 = trans.Translate(-wcx, -wcy, 0);;
+        double[][] S = trans.Scale(vw / (r - l), -vh / (t - b), 1);
+        T1 = trans.Translate(-wcx, -wcy, 0);
+        ;
         T2 = trans.Translate(20 + (vw / 2), 20 + (vh / 2), 0);
         VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
 
         TrM = math.multMatrix(VM2, (math.multMatrix(P, math.multMatrix(CT, (math.multMatrix(TT, VM1))))));
         this.TT = TrM;
     }
-    private char findMousePos(double x,double y){
+
+    private char findMousePos(double x, double y) {
         if (x < 20 || y < 20 || x > vw + 20 || y > vh + 20) {
             System.out.println("-");
             return '-';
-        } else if(x >= vw / 3 +20 && x <= 2 * vw / 3 + 20 && y >= vh / 3 +20 && y < 2 * vh / 3 + 20) {
+        } else if (x >= vw / 3 + 20 && x <= 2 * vw / 3 + 20 && y >= vh / 3 + 20 && y < 2 * vh / 3 + 20) {
             System.out.println("T");
             return 'T';
-        } else if((x < vw / 3 +20 || x > 2 * vw / 3 + 20) && (y < vh / 3 + 20 || y> 2 * vh / 3 +20)) {
+        } else if ((x < vw / 3 + 20 || x > 2 * vw / 3 + 20) && (y < vh / 3 + 20 || y > 2 * vh / 3 + 20)) {
             System.out.println("R");
             return 'R';
-        } else{
+        } else {
             System.out.println("S");
             return 'S';
         }
     }
 
-    private void execAction(){
-        switch(this.curPosTrans){
+    private void execAction() {
+        switch (this.curPosTrans) {
             case 'T':
                 execTranslate();
                 break;
@@ -92,7 +103,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     private void execTranslate() {
-        CT = trans.Translate(Dx - Sx, Dy - Sy,0);
+        CT = trans.Translate(Dx - Sx, Dy - Sy, 0);
     }
 
     public double getAngleFromVectorToXAxis(double[] vector) {
@@ -152,6 +163,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         CT = matrix.create3DMatrix();
         this.repaint();
     }
+
     public void mouseEntered(MouseEvent e) {
 
     }
@@ -179,6 +191,8 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyChar()) {
             case 'C':
+                this.isClipping = !this.isClipping;
+                this.repaint();
                 break;
             case 'R':
                 createTrM();
@@ -216,11 +230,25 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             int[] pTag = math.multPMatrix(TrM, p);
             vertexesTag.add(new Point2D(pTag[0], pTag[1]));
         }
-
+        int s=1;
         for (int[] p : polygons) {
-            Point2D startLine = vertexesTag.get(p[0]);
-            Point2D endLine = vertexesTag.get(p[1]);
-            g.drawLine(startLine.getX(), startLine.getY(), endLine.getX(), endLine.getY());
+            if (s==12) {
+                int k=6;
+            }
+
+            Line2D.Double line = new Line2D.Double();
+            line.setLine( vertexesTag.get(p[0]).getX(),vertexesTag.get(p[0]).getY()
+                    ,vertexesTag.get(p[1]).getX(), vertexesTag.get(p[1]).getY());
+            if (isClipping) {
+                if (clip(line)) {
+                    g.drawLine((int)line.x1, (int)line.y1,(int) line.x2, (int)line.y2);
+                }
+            } else {
+                g.drawLine((int)line.x1, (int)line.y1,(int) line.x2, (int)line.y2);
+
+            }
+            s++;
+
         }
     }
 
@@ -257,17 +285,17 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         return transMatrix;
     }
 
-    private String getExtension(String fileName){
+    private String getExtension(String fileName) {
         String extension = "";
 
         int i = fileName.lastIndexOf('.');
         if (i > 0) {
-            extension = fileName.substring(i+1);
+            extension = fileName.substring(i + 1);
         }
         return extension;
     }
 
-    private void loadFile(){
+    private void loadFile() {
         JFileChooser jfc = new JFileChooser();
         String workingDir = System.getProperty("user.dir");
 
@@ -277,12 +305,12 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = jfc.getSelectedFile();
             String extension = getExtension(selectedFile.getName());
-            if(extension.equals("scn")){
-                fileScn= new File (selectedFile.getName());
+            if (extension.equals("scn")) {
+                fileScn = new File(selectedFile.getName());
                 init();
                 this.repaint();
-            }else if (extension.equals("viw")){
-                fileView= new File (selectedFile.getName());
+            } else if (extension.equals("viw")) {
+                fileView = new File(selectedFile.getName());
                 init();
                 this.repaint();
             }
@@ -290,7 +318,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
     }
 
-    public void  readScn() {
+    public void readScn() {
         vertexes.clear();
         polygons.clear();
         try {
@@ -310,7 +338,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             for (int i = 0; i < size_poly; i++) {
                 line = br.readLine();
                 String[] splitStr = line.split("\\s+");
-                int[] edges={Integer.parseInt(splitStr[0]),Integer.parseInt(splitStr[1])};
+                int[] edges = {Integer.parseInt(splitStr[0]), Integer.parseInt(splitStr[1])};
                 polygons.add(edges);
             }
             br.close();
@@ -324,41 +352,160 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileView), "Cp1252"));
             String line;
             line = br.readLine();
-            String position_str = line.replace("Position ","");
+            String position_str = line.replace("Position ", "");
             String[] splitStr = position_str.split("\\s+");
             Point3D position = new Point3D(Double.parseDouble(splitStr[0]), Double.parseDouble(splitStr[1]), Double.parseDouble(splitStr[2]));
             this.Px = position.getX();
             this.Py = position.getY();
             this.Pz = position.getZ();
             line = br.readLine();
-            String lookAt_str = line.replace("LookAt ","");
+            String lookAt_str = line.replace("LookAt ", "");
             splitStr = lookAt_str.split("\\s+");
             Point3D lookAt = new Point3D(Double.parseDouble(splitStr[0]), Double.parseDouble(splitStr[1]), Double.parseDouble(splitStr[2]));
             this.Lx = lookAt.getX();
             this.Ly = lookAt.getY();
             this.Lz = lookAt.getZ();
             line = br.readLine();
-            String up_str = line.replace("Up ","");
+            String up_str = line.replace("Up ", "");
             splitStr = up_str.split("\\s+");
             Point3D up = new Point3D(Double.parseDouble(splitStr[0]), Double.parseDouble(splitStr[1]), Double.parseDouble(splitStr[2]));
             this.Vx = up.getX();
             this.Vy = up.getY();
             this.Vz = up.getZ();
             line = br.readLine();
-            String Window_str = line.replace("Window ","");
+            String Window_str = line.replace("Window ", "");
             splitStr = Window_str.split("\\s+");
-            l=Double.parseDouble(splitStr[0]);
-            r=Double.parseDouble(splitStr[1]);
-            b=Double.parseDouble(splitStr[2]);
-            t=Double.parseDouble(splitStr[3]);
+            l = Double.parseDouble(splitStr[0]);
+            r = Double.parseDouble(splitStr[1]);
+            b = Double.parseDouble(splitStr[2]);
+            t = Double.parseDouble(splitStr[3]);
             line = br.readLine();
-            String Viewport_str = line.replace("Viewport ","");
+            String Viewport_str = line.replace("Viewport ", "");
             splitStr = Viewport_str.split("\\s+");
-            vw=Integer.parseInt(splitStr[0]);
-            vh=Integer.parseInt(splitStr[1]);
+            vw = Integer.parseInt(splitStr[0]);
+            vh = Integer.parseInt(splitStr[1]);
             br.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    public boolean clip(Line2D.Double line) {
+        int[] bitsS = initBits(line.x1,line.y1);
+        int[] bitsE = initBits(line.x2,line.y2);
+        int[] bitsResultAnd = {0, 0, 0, 0};
+        for (int i = 0; i < 3; i++) {
+            bitsResultAnd[i] = ((bitsS[i]!=0) && (bitsE[i]!=0))? 1:0;
+        }
+        if (checkBits(bitsResultAnd) != 0) {
+            return false;
+        }
+        int[] bitsResultOr = {0, 0, 0, 0};
+        for (int i = 0; i < 3; i++) {
+            bitsResultOr[i] = ((bitsS[i]!=0) || (bitsE[i]!=0))? 1:0;
+        }
+        if (checkBits(bitsResultOr) == 0) {
+            return true;
+        } else {
+            fixLine(line,bitsS,bitsE);
+            return true;
+        }
+    }
+
+    public int checkBits(int[] bitsResult) {
+        int sum = 0;
+        for (int i = 0; i < 3; i++) {
+            sum += bitsResult[i];
+        }
+        return sum;
+    }
+
+    public int[] initBits(double x,double y) {
+        int[] bits = {0, 0, 0, 0};
+        if (y < yMin) {
+            bits[0] = 1;
+        }
+        if (x > xMax) {
+            bits[1] = 1;
+        }
+        if (y > yMax) {
+            bits[2] = 1;
+        }
+        if (x < xMin) {
+            bits[3] = 1;
+        }
+        return bits;
+    }
+
+    public void fixLine(Line2D.Double line ,int[] bitsS,int[] bitsE) {
+        Point2D dL = new Point2D(20,20);
+        Point2D uL = new Point2D(20,vw + 20);
+        Point2D uR = new Point2D(vh + 20,vw + 20);
+        Point2D dR = new Point2D(vh + 20,20);
+        Point2D[] lines={dL,dR,uR,uL};
+        while (checkBits(bitsS) != 0) {
+            for (int i = 0; i < 3; i++) {
+                if (bitsS[i] == 1) {
+                    if (i==1){
+                        int l=3;
+                    }
+                    Point2D new_p = findIntersection(new Point2D((int)line.x1,(int)line.y1),
+                            new Point2D((int)line.x2,(int)line.y2),lines[i],lines[(i+1)%4]);
+                    line.setLine((int)new_p.getX(),(int)new_p.getY(),line.x2,line.y2);
+                    bitsS = initBits(line.x1,line.y1);
+                }
+            }
+        }
+
+        while (checkBits(bitsE) != 0) {
+            for (int i = 0; i < 3; i++) {
+                if (bitsE[i] == 1) {
+                    Point2D new_p = findIntersection(new Point2D((int)line.x1,(int)line.y1),
+                            new Point2D((int)line.x2,(int)line.y2),lines[i],lines[(i+1)%4]);
+                    line.setLine(line.x1,line.y1,(int)new_p.getX(),(int)new_p.getY());
+                    bitsE = initBits(line.x2,line.y2);
+                }
+            }
+        }
+    }
+
+
+
+    public Point2D findIntersection(Point2D p1x,Point2D p1y,Point2D p2x,Point2D p2y) {
+        double a1 = p1y.getY() - p1x.getY();
+        double b1 = p1x.getX() - p1y.getX();
+        double c1 = a1*(p1x.getX()) + b1*(p1x.getY());
+        double a2 = p2y.getY() - p2x.getY();
+        double b2 = p2x.getX() - p2y.getX();
+        double c2 = a2*(p2x.getX()) + b2*(p2x.getY());
+        double determinant = a1*b2 - a2*b1;
+        double x = (b2*c1 - b1*c2)/determinant;
+        double y = (a1*c2 - a2*c1)/determinant;
+        return new Point2D((int)x, (int)y);
+
+    }
+    @Override
+    public void componentMoved(ComponentEvent arg0) {}
+    @Override
+    public void componentHidden(ComponentEvent arg0) {}
+
+
+
+    @Override
+    public void componentResized(ComponentEvent arg0) {
+        if (z==20){
+            int s=1;
+        }
+        System.out.println("componentResized");
+        Component c = (Component)arg0.getSource();
+        Dimension newSize = c.getSize();
+        vw = (int)newSize.getWidth()-40;
+        vh = (int)newSize.getHeight()-40;
+        init();
+        this.repaint();
+        z++;
+
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e) {}
 }

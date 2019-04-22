@@ -25,13 +25,13 @@ public class Transform {
         switch(rotateAxis) {
             case 'z':
                 rotationMatrix[0][0] = Math.cos(angleInRadian);
-                rotationMatrix[0][1] = Math.sin(angleInRadian);
-                rotationMatrix[1][0] = -Math.sin(angleInRadian);
+                rotationMatrix[0][1] = -Math.sin(angleInRadian);
+                rotationMatrix[1][0] = Math.sin(angleInRadian);
                 rotationMatrix[1][1] = Math.cos(angleInRadian);
             case 'x':
                 rotationMatrix[1][1] = Math.cos(angleInRadian);
-                rotationMatrix[2][1] = Math.sin(angleInRadian);
                 rotationMatrix[1][2] = -Math.sin(angleInRadian);
+                rotationMatrix[2][1] = Math.sin(angleInRadian);
                 rotationMatrix[2][2] = Math.cos(angleInRadian);
             case 'y':
                 rotationMatrix[0][0] = Math.cos(angleInRadian);
@@ -41,7 +41,6 @@ public class Transform {
             default:
                 break;
         }
-
         return rotationMatrix;
     }
 
