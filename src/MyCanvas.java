@@ -28,7 +28,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double[][] TrM;
     private boolean isClipping = true;
 
-    public MyCanvas() {
+    private MyCanvas() {
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
@@ -230,24 +230,16 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
-
         double[][] TrM = math.multMatrix(VM2, P);
         TrM = math.multMatrix(TrM, CT);
         TrM = math.multMatrix(TrM, TT);
         TrM = math.multMatrix(TrM, VM1);
-
-        //TrM = math.multMatrix(CT, TT);
         ArrayList<Point2D> vertexesTag = new ArrayList<>();
         for (Point3D p : vertexes) {
             int[] pTag = math.multPMatrix(TrM, p);
             vertexesTag.add(new Point2D(pTag[0], pTag[1]));
         }
-        int s=1;
         for (int[] p : polygons) {
-            if (s==12) {
-                int k=6;
-            }
-
             Line2D.Double line = new Line2D.Double();
             line.setLine( vertexesTag.get(p[0]).getX(),vertexesTag.get(p[0]).getY()
                     ,vertexesTag.get(p[1]).getX(), vertexesTag.get(p[1]).getY());
@@ -257,10 +249,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 }
             } else {
                 g.drawLine((int)line.x1, (int)line.y1,(int) line.x2, (int)line.y2);
-
             }
-            s++;
-
         }
     }
 
@@ -276,14 +265,11 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         double[] sub_p_l = {Px - Lx, Py - Ly, Pz - Lz};
         double z_norm = math.getVecNorm(sub_p_l);
         double[] zv = math.devideVec(sub_p_l, z_norm);
-
         Point3D zv_point = new Point3D(zv[0], zv[1], zv[2]);
         double[] mult_v_z = math.multPP(new Point3D(Vx, Vy, Vz), zv_point);
         double x_norm = math.getVecNorm(mult_v_z);
         double[] xv = math.devideVec(mult_v_z, x_norm);
-
         double[] yv = math.multPP(zv_point, new Point3D(xv[0], xv[1], xv[2]));
-
         double[][] transMatrix = matrix.createInitMatrix();
         transMatrix[0][0] = xv[0];
         transMatrix[0][1] = xv[1];
@@ -299,7 +285,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
     private String getExtension(String fileName) {
         String extension = "";
-
         int i = fileName.lastIndexOf('.');
         if (i > 0) {
             extension = fileName.substring(i + 1);
@@ -419,8 +404,8 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         if (checkBits(bitsResultOr) == 0) {
             return true;
         } else {
-            fixLine(line,bitsS,bitsE);
-            return true;
+
+            return fixLine(line,bitsS,bitsE);
         }
     }
 
@@ -450,7 +435,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         return bits;
     }
 
-    private void fixLine(Line2D.Double line ,int[] bitsS,int[] bitsE) {
+    private boolean fixLine(Line2D.Double line ,int[] bitsS,int[] bitsE) {
         Point2D dL = new Point2D(20,20);
         Point2D uL = new Point2D(20,vw + 20);
         Point2D uR = new Point2D(vh + 20,vw + 20);
@@ -459,27 +444,30 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         while (checkBits(bitsS) != 0) {
             for (int i = 0; i < 4; i++) {
                 if (bitsS[i] == 1) {
-                    if (i==1){
-                        int l=3;
-                    }
                     Point2D new_p = findIntersection(new Point2D((int)line.x1,(int)line.y1),
                             new Point2D((int)line.x2,(int)line.y2),lines[i],lines[(i+1)%4]);
-                    line.setLine((int)new_p.getX(),(int)new_p.getY(),line.x2,line.y2);
+                    line.setLine(new_p.getX(),new_p.getY(),line.x2,line.y2);
                     bitsS = initBits(line.x1,line.y1);
+                    if (checkBits(bitsS)!=0){
+                        return false;
+                    }
                 }
             }
         }
-
         while (checkBits(bitsE) != 0) {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 4; i++) {
                 if (bitsE[i] == 1) {
                     Point2D new_p = findIntersection(new Point2D((int)line.x1,(int)line.y1),
                             new Point2D((int)line.x2,(int)line.y2),lines[i],lines[(i+1)%4]);
-                    line.setLine(line.x1,line.y1,(int)new_p.getX(),(int)new_p.getY());
+                    line.setLine(line.x1,line.y1,new_p.getX(),new_p.getY());
                     bitsE = initBits(line.x2,line.y2);
+                    if (checkBits(bitsE)!=0){
+                        return false;
+                    }
                 }
             }
         }
+        return true;
     }
 
     private Point2D findIntersection(Point2D p1x,Point2D p1y,Point2D p2x,Point2D p2y) {
