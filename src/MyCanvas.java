@@ -21,14 +21,13 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double Sx, Sy;
     private double Dx, Dy;
     private char rotateAxis = 'z';
+    private boolean isClipping = false;
     private char curPosTrans;
     private File fileView = new File("example3d.viw");
     private File fileScn = new File("example3d.scn");
     private double centerX, centerY;
-    private double[][] TrM;
-    private boolean isClipping = true;
 
-    private MyCanvas() {
+    public MyCanvas() {
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
@@ -48,209 +47,22 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
     private void createTrM() {
         double[][] T1, T2;
-        this.CT = matrix.createInitMatrix();
-        this.TT = matrix.createInitMatrix();
-        double[][] T = createT();
-        double[][] R = createR();
-        VM1 = math.multMatrix(R, T);
-        P = matrix.createInitMatrix();
-        P[2][2] = 0;
         double wcx = l + ((r - l) / 2);
         double wcy = b + ((t - b) / 2);
         double[][] S = trans.Scale(vw / (r - l), -vh / (t - b), 1);
         T1 = trans.Translate(-wcx, -wcy);
         T2 = trans.Translate(20 + (vw / 2), 20 + (vh / 2));
         VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
-    }
 
-    private char findMousePos(double x, double y) {
-        if (x < 20 || y < 20 || x > vw + 20 || y > vh + 20) {
-            System.out.println("-");
-            return '-';
-        } else if (x >= vw / 3 + 20 && x <= 2 * vw / 3 + 20 && y >= vh / 3 + 20 && y < 2 * vh / 3 + 20) {
-            System.out.println("T");
-            return 'T';
-        } else if ((x < vw / 3 + 20 || x > 2 * vw / 3 + 20) && (y < vh / 3 + 20 || y > 2 * vh / 3 + 20)) {
-            System.out.println("R");
-            return 'R';
-        } else {
-            System.out.println("S");
-            return 'S';
-        }
-    }
+        this.CT = matrix.createInitMatrix();
+        this.TT = matrix.createInitMatrix();
 
-    private void execAction() {
-        switch (this.curPosTrans) {
-            case 'T':
-                execTranslate();
-                break;
-            case 'R':
-                execeRotation();
-                break;
-            case 'S':
-                execScale();
-                break;
-            default:
-                break;
-        }
-    }
+        double[][] T = createT();
+        double[][] R = createR();
+        VM1 = math.multMatrix(R, T);
 
-    private void execTranslate() {
-        CT = trans.Translate((Dx - Sx) * ((r - l) / vw), (Dy - Sy) * (-((t - b) / vh)));
-    }
-
-    private double getAngleFromVectorToXAxis(double[] vector) {
-        double angle;
-        float RAD2DEG = 180.0f / 3.14159f;
-        // atan2 receives first Y second X
-        angle = Math.atan2(vector[1], vector[0]) * RAD2DEG;
-        if (angle < 0) angle += 360.0f;
-        return angle;
-    }
-
-    private void execeRotation() {
-        double[] vecStart = new double[2];
-        double[] vecEnd = new double[2];
-
-        //vector start = (x of start point - x of center point,y of start point - y of center point)
-        vecStart[0] = Sx - centerX;
-        vecStart[1] = Sy - centerY;
-
-        //vector start = (x of end point - x of center point,y of end point - y of center point)
-        vecEnd[0] = Dx - centerX;
-        vecEnd[1] = Dy - centerY;
-
-        double angleStart = getAngleFromVectorToXAxis(vecStart);
-        double angleEnd = getAngleFromVectorToXAxis(vecEnd);
-        double angleFinish = angleStart - angleEnd;
-        CT = trans.Rotate(angleFinish, rotateAxis);
-        createCT();
-    }
-
-    private void createCT() {
-        double[] LookAt = {Lx, Ly, Lz};
-        double[] Position = {Px, Py, Pz};
-        double d = math.vecLength(math.subtract(LookAt, Position));
-        double[][] Tld = matrix.createInitMatrix();
-        double[][] Tl_d = matrix.createInitMatrix();
-        Tld[2][3] = d;
-        Tl_d[2][3] = -d;
-        CT = math.multMatrix(Tl_d, math.multMatrix(CT, Tld));
-    }
-
-    private void execScale() {
-        double radiusPStart = math.distance(Sx, Sy, centerX, centerY);
-        double radiusPEnd = math.distance(Dx, Dy, centerX, centerY);
-        double scaleParameter = radiusPEnd / radiusPStart;
-        CT = trans.Scale(scaleParameter, scaleParameter, scaleParameter);
-        createCT();
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-
-    }
-
-    public void mousePressed(MouseEvent e) {
-        System.out.println("Mouse Pressed");
-        Sx = e.getX();
-        Sy = e.getY();
-        curPosTrans = findMousePos(Sx, Sy);
-    }
-
-    public void mouseListener(MouseEvent e) {
-
-    }
-
-    public void mouseReleased(MouseEvent e) {
-        Dx = e.getX();
-        Dy = e.getY();
-        TT = math.multMatrix(CT, TT);
-        CT = matrix.createInitMatrix();
-        this.repaint();
-    }
-
-    public void mouseEntered(MouseEvent e) {
-
-    }
-
-    public void mouseExited(MouseEvent e) {
-
-    }
-
-    public void mouseDragged(MouseEvent e) {
-        System.out.println("Mouse Dragged");
-        Dx = e.getX();
-        Dy = e.getY();
-        execAction();
-        this.repaint();
-    }
-
-    public void mouseMoved(MouseEvent e) {
-
-    }
-
-    public void keyTyped(KeyEvent e) {
-
-    }
-
-    public void keyPressed(KeyEvent e) {
-        switch (e.getKeyChar()) {
-            case 'C':
-                this.isClipping = !this.isClipping;
-                this.repaint();
-                break;
-            case 'R':
-                createTrM();
-                this.repaint();
-                break;
-            case 'L':
-                loadFile();
-                break;
-            case 'X':
-                this.rotateAxis = 'x';
-                break;
-            case 'Y':
-                this.rotateAxis = 'y';
-                break;
-            case 'Z':
-                this.rotateAxis = 'z';
-                break;
-            case 'Q':
-                System.exit(0);
-            default:
-                break;
-        }
-        System.out.println(e.getKeyChar());
-    }
-
-    public void keyReleased(KeyEvent e) {
-
-    }
-
-    public void paint(Graphics g) {
-        g.drawRect(20, 20, vw, vh);
-        double[][] TrM = math.multMatrix(VM2, P);
-        TrM = math.multMatrix(TrM, CT);
-        TrM = math.multMatrix(TrM, TT);
-        TrM = math.multMatrix(TrM, VM1);
-        ArrayList<Point2D> vertexesTag = new ArrayList<>();
-        for (Point3D p : vertexes) {
-            int[] pTag = math.multPMatrix(TrM, p);
-            vertexesTag.add(new Point2D(pTag[0], pTag[1]));
-        }
-        for (int[] p : polygons) {
-            Line2D.Double line = new Line2D.Double();
-            line.setLine( vertexesTag.get(p[0]).getX(),vertexesTag.get(p[0]).getY()
-                    ,vertexesTag.get(p[1]).getX(), vertexesTag.get(p[1]).getY());
-            if (isClipping) {
-                if (clip(line)) {
-                    g.drawLine((int)line.x1, (int)line.y1,(int) line.x2, (int)line.y2);
-                }
-            } else {
-                g.drawLine((int)line.x1, (int)line.y1,(int) line.x2, (int)line.y2);
-            }
-        }
+        P = matrix.createInitMatrix();
+        P[2][2] = 0;
     }
 
     private double[][] createT() {
@@ -281,6 +93,150 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         transMatrix[2][1] = zv[1];
         transMatrix[2][2] = zv[2];
         return transMatrix;
+    }
+
+    private void execAction() {
+        switch(this.curPosTrans) {
+            case 'T':
+                execTranslate();
+                break;
+            case 'R':
+                execeRotation();
+                break;
+            case 'S':
+                execScale();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void execTranslate() {
+        CT = trans.Translate((Dx - Sx) * ((r - l) / vw), (Dy - Sy) * (-((t - b) / vh)));
+    }
+
+    private void execeRotation() {
+        double[] vecStart = new double[2];
+        double[] vecEnd = new double[2];
+
+        vecStart[0] = Sx - centerX;
+        vecStart[1] = Sy - centerY;
+
+        vecEnd[0] = Dx - centerX;
+        vecEnd[1] = Dy - centerY;
+
+        double angleFromVecStart = math.getAngleFromXAxisToVec(vecStart);
+        double angleFromVecEnd = math.getAngleFromXAxisToVec(vecEnd);
+        double angle = angleFromVecStart - angleFromVecEnd;
+        CT = trans.Rotate(angle, rotateAxis);
+        createCT();
+    }
+
+    private void execScale() {
+        double Rs = math.distance(Sx, Sy, centerX, centerY);
+        double Rd = math.distance(Dx, Dy, centerX, centerY);
+        double scaleParameter = Rd / Rs;
+        CT = trans.Scale(scaleParameter, scaleParameter, scaleParameter);
+        createCT();
+    }
+
+    private void createCT() {
+        double[] LookAt = {Lx, Ly, Lz};
+        double[] Position = {Px, Py, Pz};
+        double d = math.vecLen(math.subtractVV(LookAt, Position));
+        double[][] Tl = matrix.createInitMatrix();
+        Tl[2][3] = d;
+        CT = math.multMatrix(CT, Tl);
+        Tl[2][3] = -d;
+        CT = math.multMatrix(Tl, CT);
+    }
+
+    public void mousePressed(MouseEvent e) {
+        Sx = e.getX();
+        Sy = e.getY();
+        curPosTrans = findMousePos(Sx, Sy);
+    }
+
+    private char findMousePos(double x, double y) {
+        if (x < 20 || y < 20 || x > vw + 20 || y > vh + 20) {
+            return '-';
+        } else if (x >= vw / 3 + 20 && x <= 2 * vw / 3 + 20 && y >= vh / 3 + 20 && y < 2 * vh / 3 + 20) {
+            return 'T';
+        } else if ((x < vw / 3 + 20 || x > 2 * vw / 3 + 20) && (y < vh / 3 + 20 || y > 2 * vh / 3 + 20)) {
+            return 'R';
+        } else {
+            return 'S';
+        }
+    }
+
+    public void mouseReleased(MouseEvent e) {
+        Dx = e.getX();
+        Dy = e.getY();
+        TT = math.multMatrix(CT, TT);
+        CT = matrix.createInitMatrix();
+        this.repaint();
+    }
+
+    public void mouseDragged(MouseEvent e) {
+        System.out.println("Mouse Dragged");
+        Dx = e.getX();
+        Dy = e.getY();
+        execAction();
+        this.repaint();
+    }
+
+    public void keyPressed(KeyEvent e) {
+        switch (e.getKeyChar()) {
+            case 'C':
+                this.isClipping = !this.isClipping;
+                this.repaint();
+                break;
+            case 'R':
+                createTrM();
+                this.repaint();
+                break;
+            case 'L':
+                loadFile();
+                break;
+            case 'X':
+                this.rotateAxis = 'x';
+                break;
+            case 'Y':
+                this.rotateAxis = 'y';
+                break;
+            case 'Z':
+                this.rotateAxis = 'z';
+                break;
+            case 'Q':
+                System.exit(0);
+            default:
+                break;
+        }
+    }
+
+    public void paint(Graphics g) {
+        g.drawRect(20, 20, vw, vh);
+        double[][] TrM = math.multMatrix(VM2, P);
+        TrM = math.multMatrix(TrM, CT);
+        TrM = math.multMatrix(TrM, TT);
+        TrM = math.multMatrix(TrM, VM1);
+        ArrayList<Point2D> vertexesTag = new ArrayList<>();
+        for (Point3D p : vertexes) {
+            int[] pTag = math.multPMatrix(TrM, p);
+            vertexesTag.add(new Point2D(pTag[0], pTag[1]));
+        }
+        for (int[] p : polygons) {
+            Line2D.Double line = new Line2D.Double();
+            line.setLine( vertexesTag.get(p[0]).getX(),vertexesTag.get(p[0]).getY()
+                    ,vertexesTag.get(p[1]).getX(), vertexesTag.get(p[1]).getY());
+            if (isClipping) {
+                if (clip(line)) {
+                    g.drawLine((int)line.x1, (int)line.y1,(int) line.x2, (int)line.y2);
+                }
+            } else {
+                g.drawLine((int)line.x1, (int)line.y1,(int) line.x2, (int)line.y2);
+            }
+        }
     }
 
     private String getExtension(String fileName) {
@@ -485,12 +441,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     @Override
-    public void componentMoved(ComponentEvent arg0) {}
-
-    @Override
-    public void componentHidden(ComponentEvent arg0) {}
-
-    @Override
     public void componentResized(ComponentEvent arg0) {
         if (z==20){
             int s=1;
@@ -507,4 +457,20 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
     @Override
     public void componentShown(ComponentEvent e) {}
+    @Override
+    public void mouseClicked(MouseEvent e) {}
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+    @Override
+    public void mouseExited(MouseEvent e) {}
+    @Override
+    public void mouseMoved(MouseEvent e) {}
+    @Override
+    public void keyTyped(KeyEvent e) {}
+    @Override
+    public void keyReleased(KeyEvent e) {}
+    @Override
+    public void componentMoved(ComponentEvent arg0) {}
+    @Override
+    public void componentHidden(ComponentEvent arg0) {}
 }

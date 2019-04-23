@@ -1,17 +1,20 @@
-import javax.swing.*;
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class Main {
-
     public static void main(String[] args) {
         MyCanvas canvas = new MyCanvas();
-        JFrame frame = new JFrame();
-        frame.setSize(800 + 40,800 + 40);
-
-        frame.getContentPane().add(canvas);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        Frame frame = new Frame();
+        frame.add(canvas);
+        WindowAdapter winAdapter = new WindowAdapter(){
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        };
+        frame.addWindowListener(winAdapter);
+        frame.pack();
         frame.setVisible(true);
     }
-
-
 }
 

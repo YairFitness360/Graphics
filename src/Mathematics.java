@@ -1,7 +1,4 @@
-import java.awt.*;
-
 public class Mathematics {
-
     public double getVecNorm(double[] x) {
         return Math.sqrt(Math.pow(x[0], 2) + Math.pow(x[1], 2) + Math.pow(x[2], 2));
     }
@@ -61,53 +58,38 @@ public class Mathematics {
         return res;
     }
 
-//    public void printMatrix(double[][] mat) {
-//        for (int i = 0; i < mat.length; i++) {
-//            for (int j = 0; j < mat[i].length; j++) {
-//                System.out.print(mat[i][j] + " ");
-//            }
-//            System.out.println();
-//        }
-//    }
-//    public void printVec(double[] mat) {
-//        for (int i = 0; i < mat.length; i++) {
-//            System.out.print(mat[i] + " ");
-//        }
-//        System.out.println();
-//    }
-
     public double distance(double p1_x, double p1_y, double p2_x, double p2_y) {
-        return Math.sqrt(Math.pow(p1_x - p2_x, 2)
-                + Math.pow(p1_y - p2_y, 2));
+        return Math.sqrt(Math.pow(p1_x - p2_x, 2) + Math.pow(p1_y - p2_y, 2));
     }
 
-    public double vecLength(double[] vector) {
+    public double vecLen(double[] vector) {
         double sum = multVV(vector, vector);
         return Math.sqrt(sum);
     }
 
-    private double multVV(double[] vectorA, double[] vectorB) {
-        int vectorAsize = vectorA.length;
-        int vectorBsize = vectorB.length;
-        if (vectorAsize != vectorBsize) {
-            throw new IllegalArgumentException("A:size: " + vectorAsize + " did not match size " + vectorBsize + ".");
-        }
+    private double multVV(double[] a, double[] b) {
+        int aSize = a.length;
         double sum = 0;
-        for (int i=0; i<vectorAsize;++i){
-            sum += vectorA[i]*vectorA[i];
+        for (int i = 0; i < aSize; ++i){
+            sum += a[i] * b[i];
         }
         return sum;
     }
 
-    public double[] subtract(double[] vectorA, double[] vectorB) {
-        int vectorAsize = vectorA.length;
-        int vectorBsize = vectorB.length;
-        if (vectorAsize != vectorBsize) {
-            throw new IllegalArgumentException("A:size: " + vectorAsize + " did not match size " + vectorBsize + ".");
-        }
-        double[] answer = new double[vectorAsize];
-        for (int i = 0; i < vectorAsize; i++)
-            answer[i] = vectorA[i] - vectorB[i];
+    public double[] subtractVV(double[] a, double[] b) {
+        int aSize = a.length;
+        double[] answer = new double[aSize];
+        for (int i = 0; i < aSize; i++)
+            answer[i] = a[i] - b[i];
         return answer;
+    }
+
+    public double getAngleFromXAxisToVec(double[] vec) {
+        float radToDegFactor = 180.0f / (float)(Math.PI);
+        double angle = Math.atan2(vec[1], vec[0]) * radToDegFactor;
+        if (angle < 0) {
+            angle += 360.0f;
+        }
+        return angle;
     }
 }
