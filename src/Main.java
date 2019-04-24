@@ -6,6 +6,7 @@ public class Main {
     public static void main(String[] args) {
         MyCanvas canvas = new MyCanvas();
         Frame frame = new Frame();
+
         frame.add(canvas);
         WindowAdapter winAdapter = new WindowAdapter(){
             public void windowClosing(WindowEvent e) {

@@ -38,6 +38,10 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private void init() {
         readView();
         readScn();
+        load();
+    }
+
+    private void load() {
         setSize(vw + 40, vh + 40);
         this.matrix = new Matrix();
         centerX = (vw / 2) + 20;
@@ -344,24 +348,24 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     private boolean clip(Line2D.Double line) {
-        int[] bitsS = initBits(line.x1,line.y1);
-        int[] bitsE = initBits(line.x2,line.y2);
+        int[] bitsS = initBits(line.x1, line.y1);
+        int[] bitsE = initBits(line.x2, line.y2);
         int[] bitsResultAnd = {0, 0, 0, 0};
         for (int i = 0; i < 4; i++) {
-            bitsResultAnd[i] = ((bitsS[i]!=0) && (bitsE[i]!=0))? 1:0;
+            bitsResultAnd[i] = ((bitsS[i] != 0) && (bitsE[i] != 0)) ? 1 : 0;
         }
         if (checkBits(bitsResultAnd) != 0) {
             return false;
         }
         int[] bitsResultOr = {0, 0, 0, 0};
         for (int i = 0; i < 4; i++) {
-            bitsResultOr[i] = ((bitsS[i]!=0) || (bitsE[i]!=0))? 1:0;
+            bitsResultOr[i] = ((bitsS[i] != 0) || (bitsE[i] != 0)) ? 1 : 0;
         }
         if (checkBits(bitsResultOr) == 0) {
             return true;
         } else {
 
-            return fixLine(line,bitsS,bitsE);
+            return fixLine(line, bitsS, bitsE);
         }
     }
 
@@ -373,7 +377,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         return sum;
     }
 
-    private int[] initBits(double x,double y) {
+    private int[] initBits(double x, double y) {
         int[] bits = {0, 0, 0, 0};
         double xMin = 20, xMax = vw + 20, yMin = 20, yMax = vh + 20;
         if (y < yMin) {
@@ -391,20 +395,20 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         return bits;
     }
 
-    private boolean fixLine(Line2D.Double line ,int[] bitsS,int[] bitsE) {
-        Point2D dL = new Point2D(20,20);
-        Point2D uL = new Point2D(20,vw + 20);
-        Point2D uR = new Point2D(vh + 20,vw + 20);
-        Point2D dR = new Point2D(vh + 20,20);
-        Point2D[] lines={dL,dR,uR,uL};
+    private boolean fixLine(Line2D.Double line, int[] bitsS, int[] bitsE) {
+        Point2D dL = new Point2D(20, 20);
+        Point2D uL = new Point2D(20, vw + 20);
+        Point2D uR = new Point2D(vh + 20, vw + 20);
+        Point2D dR = new Point2D(vh + 20, 20);
+        Point2D[] lines={dL, dR, uR, uL};
         while (checkBits(bitsS) != 0) {
             for (int i = 0; i < 4; i++) {
                 if (bitsS[i] == 1) {
-                    Point2D new_p = findIntersection(new Point2D((int)line.x1,(int)line.y1),
-                            new Point2D((int)line.x2,(int)line.y2),lines[i],lines[(i+1)%4]);
-                    line.setLine(new_p.getX(),new_p.getY(),line.x2,line.y2);
-                    bitsS = initBits(line.x1,line.y1);
-                    if (checkBits(bitsS)!=0){
+                    Point2D new_p = findIntersection(new Point2D((int)line.x1, (int)line.y1),
+                            new Point2D((int)line.x2, (int)line.y2), lines[i], lines[(i + 1) % 4]);
+                    line.setLine(new_p.getX(), new_p.getY(), line.x2, line.y2);
+                    bitsS = initBits(line.x1, line.y1);
+                    if (checkBits(bitsS) != 0){
                         return false;
                     }
                 }
@@ -413,11 +417,11 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         while (checkBits(bitsE) != 0) {
             for (int i = 0; i < 4; i++) {
                 if (bitsE[i] == 1) {
-                    Point2D new_p = findIntersection(new Point2D((int)line.x1,(int)line.y1),
-                            new Point2D((int)line.x2,(int)line.y2),lines[i],lines[(i+1)%4]);
-                    line.setLine(line.x1,line.y1,new_p.getX(),new_p.getY());
-                    bitsE = initBits(line.x2,line.y2);
-                    if (checkBits(bitsE)!=0){
+                    Point2D new_p = findIntersection(new Point2D((int)line.x1, (int)line.y1),
+                            new Point2D((int)line.x2, (int)line.y2), lines[i], lines[(i + 1) % 4]);
+                    line.setLine(line.x1,line.y1, new_p.getX(), new_p.getY());
+                    bitsE = initBits(line.x2, line.y2);
+                    if (checkBits(bitsE) != 0){
                         return false;
                     }
                 }
@@ -426,33 +430,26 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         return true;
     }
 
-    private Point2D findIntersection(Point2D p1x,Point2D p1y,Point2D p2x,Point2D p2y) {
+    private Point2D findIntersection(Point2D p1x, Point2D p1y, Point2D p2x, Point2D p2y) {
         double a1 = p1y.getY() - p1x.getY();
         double b1 = p1x.getX() - p1y.getX();
-        double c1 = a1*(p1x.getX()) + b1*(p1x.getY());
+        double c1 = a1 * (p1x.getX()) + b1 * (p1x.getY());
         double a2 = p2y.getY() - p2x.getY();
         double b2 = p2x.getX() - p2y.getX();
-        double c2 = a2*(p2x.getX()) + b2*(p2x.getY());
-        double determinant = a1*b2 - a2*b1;
-        double x = (b2*c1 - b1*c2)/determinant;
-        double y = (a1*c2 - a2*c1)/determinant;
+        double c2 = a2 * (p2x.getX()) + b2 * (p2x.getY());
+        double determinant = a1 * b2 - a2 * b1;
+        double x = (b2 * c1 - b1 * c2) / determinant;
+        double y = (a1 * c2 - a2 * c1) / determinant;
         return new Point2D((int)x, (int)y);
-
     }
 
     @Override
     public void componentResized(ComponentEvent arg0) {
-        if (z==20){
-            int s=1;
-        }
-        System.out.println("componentResized");
         Component c = (Component)arg0.getSource();
         Dimension newSize = c.getSize();
-        vw = (int)newSize.getWidth()-40;
-        vh = (int)newSize.getHeight()-40;
-        init();
-        this.repaint();
-        z++;
+        vw = (int)newSize.getWidth() - 40;
+        vh = (int)newSize.getHeight() - 40;
+        load();
     }
 
     @Override
