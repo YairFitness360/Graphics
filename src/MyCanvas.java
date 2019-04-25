@@ -21,12 +21,12 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double Sx, Sy;
     private double Dx, Dy;
     private char rotateAxis = 'z';
-    private boolean isClipping = false;
+    private boolean isClipping = true;
     private char curPosTrans;
     private File fileView = new File("example3d.viw");
     private File fileScn = new File("example3d.scn");
     private double centerX, centerY;
-
+    private int s=0;
     public MyCanvas() {
         addMouseListener(this);
         addMouseMotionListener(this);
@@ -38,12 +38,14 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private void init() {
         readView();
         readScn();
+        this.matrix = new Matrix();
+        this.CT = matrix.createInitMatrix();
+        this.TT = matrix.createInitMatrix();
         load();
     }
 
     private void load() {
         setSize(vw + 40, vh + 40);
-        this.matrix = new Matrix();
         centerX = (vw / 2) + 20;
         centerY = (vh / 2) + 20;
         createTrM();
@@ -58,8 +60,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         T2 = trans.Translate(20 + (vw / 2), 20 + (vh / 2));
         VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
 
-        this.CT = matrix.createInitMatrix();
-        this.TT = matrix.createInitMatrix();
+
 
         double[][] T = createT();
         double[][] R = createR();
@@ -255,9 +256,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private void loadFile() {
         JFileChooser jfc = new JFileChooser();
         String workingDir = System.getProperty("user.dir");
-
         jfc.setCurrentDirectory(new File(workingDir));
-
         int returnValue = jfc.showOpenDialog(jfc.getParent());
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = jfc.getSelectedFile();
@@ -396,36 +395,57 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     private boolean fixLine(Line2D.Double line, int[] bitsS, int[] bitsE) {
-        Point2D dL = new Point2D(20, 20);
-        Point2D uL = new Point2D(20, vw + 20);
-        Point2D uR = new Point2D(vh + 20, vw + 20);
-        Point2D dR = new Point2D(vh + 20, 20);
-        Point2D[] lines={dL, dR, uR, uL};
+        Point2D uL = new Point2D(20, 20);
+        Point2D dL = new Point2D(20, vw + 20);
+        Point2D dR = new Point2D(vh + 20, vw + 20);
+        Point2D uR = new Point2D(vh + 20, 20);
+        Point2D[] lines={uL,uR,dR,dL};
+        Line2D.Double L=new Line2D.Double(line.x1,line.y1,line.x2,line.y2);
+
+
+
         while (checkBits(bitsS) != 0) {
-            for (int i = 0; i < 4; i++) {
+            int i ;
+            for (i=0; i < 4; i++) {
                 if (bitsS[i] == 1) {
-                    Point2D new_p = findIntersection(new Point2D((int)line.x1, (int)line.y1),
-                            new Point2D((int)line.x2, (int)line.y2), lines[i], lines[(i + 1) % 4]);
-                    line.setLine(new_p.getX(), new_p.getY(), line.x2, line.y2);
-                    bitsS = initBits(line.x1, line.y1);
-                    if (checkBits(bitsS) != 0){
-                        return false;
-                    }
+                    break;
                 }
+            }
+            System.out.println(line.x1);
+            System.out.println(line.y1);
+            System.out.println(line.x2);
+            System.out.println(line.y2);
+            for (int k = 0; k < 4; k++) {
+                System.out.println(bitsS[i]);
+            }
+            for (int k = 0; k < 4; k++) {
+                System.out.println(bitsE[i]);
+            }
+            Point2D new_p = findIntersection(new Point2D((int) line.x1, (int) line.y1),
+                    new Point2D((int) line.x2, (int) line.y2), lines[i], lines[(i + 1) % 4]);
+            line.setLine(new_p.getX(), new_p.getY(), line.x2, line.y2);
+            bitsS = initBits(line.x1, line.y1);
+            if (checkBits(bitsS) != 0) {
+                return false;
             }
         }
+
         while (checkBits(bitsE) != 0) {
-            for (int i = 0; i < 4; i++) {
+            int i;
+            for (i = 0; i < 4; i++) {
                 if (bitsE[i] == 1) {
-                    Point2D new_p = findIntersection(new Point2D((int)line.x1, (int)line.y1),
-                            new Point2D((int)line.x2, (int)line.y2), lines[i], lines[(i + 1) % 4]);
-                    line.setLine(line.x1,line.y1, new_p.getX(), new_p.getY());
-                    bitsE = initBits(line.x2, line.y2);
-                    if (checkBits(bitsE) != 0){
-                        return false;
-                    }
+                    break;
                 }
             }
+            Point2D new_p = findIntersection(new Point2D((int) line.x1, (int) line.y1),
+                    new Point2D((int) line.x2, (int) line.y2), lines[i], lines[(i + 1) % 4]);
+            line.setLine(line.x1, line.y1, new_p.getX(), new_p.getY());
+            bitsE = initBits(line.x2, line.y2);
+            if (checkBits(bitsE) != 0) {
+                return false;
+            }
+
+
         }
         return true;
     }
@@ -445,11 +465,18 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
     @Override
     public void componentResized(ComponentEvent arg0) {
-        Component c = (Component)arg0.getSource();
-        Dimension newSize = c.getSize();
-        vw = (int)newSize.getWidth() - 40;
-        vh = (int)newSize.getHeight() - 40;
-        load();
+        if (s>6) {
+            Component c = (Component)arg0.getSource();
+            Dimension newSize = c.getSize();
+            System.out.println((int)newSize.getWidth());
+            System.out.println((int)newSize.getHeight());
+
+            vw = (int)newSize.getWidth() - 40;
+            vh = (int)newSize.getHeight() - 40;
+            load();
+        }
+        s++;
+
     }
 
     @Override
