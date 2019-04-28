@@ -5,7 +5,7 @@ import java.awt.geom.Line2D;
 import java.io.*;
 import java.util.ArrayList;
 
-public class MyCanvas extends Canvas implements MouseListener, MouseMotionListener, KeyListener,ComponentListener {
+public class MyCanvas extends Canvas implements MouseListener, MouseMotionListener, KeyListener {
     private double l, r, b, t;
     private double Px, Py, Pz;
     private double Lx, Ly, Lz;
@@ -13,7 +13,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double[][] VM1, P, CT, TT, VM2;
     private int vw, vh;
     private ArrayList<Point3D> vertexes = new ArrayList<>();
-    private int z = 0;
     private ArrayList<int[]> polygons = new ArrayList<>();
     private Mathematics math = new Mathematics();
     private Transform trans = new Transform();
@@ -21,17 +20,26 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double Sx, Sy;
     private double Dx, Dy;
     private char rotateAxis = 'z';
-    private boolean isClipping = true;
+    private boolean isClipping = false;
     private char curPosTrans;
     private File fileView = new File("example3d.viw");
     private File fileScn = new File("example3d.scn");
     private double centerX, centerY;
-    private int s=0;
+
     public MyCanvas() {
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
-        addComponentListener(this);
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                Component vp = e.getComponent();
+                Dimension dim = vp.getSize();
+                vw = dim.width - 40;
+                vh = dim.height - 40;
+                load();
+            }
+        });
         init();
     }
 
@@ -41,14 +49,25 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         this.matrix = new Matrix();
         this.CT = matrix.createInitMatrix();
         this.TT = matrix.createInitMatrix();
-        load();
+        setPreferredSize(new Dimension(vw + 40, vh + 40));
+        packFrame();
     }
 
     private void load() {
-        setSize(vw + 40, vh + 40);
         centerX = (vw / 2) + 20;
         centerY = (vh / 2) + 20;
         createTrM();
+    }
+
+    private void packFrame() {
+        Container parent = getParent();
+        while (parent != null) {
+            if (parent instanceof Frame) {
+                ((Frame)parent).pack();
+                return;
+            }
+            parent = parent.getParent();
+        }
     }
 
     private void createTrM() {
@@ -59,8 +78,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         T1 = trans.Translate(-wcx, -wcy);
         T2 = trans.Translate(20 + (vw / 2), 20 + (vh / 2));
         VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
-
-
 
         double[][] T = createT();
         double[][] R = createR();
@@ -183,7 +200,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     }
 
     public void mouseDragged(MouseEvent e) {
-        System.out.println("Mouse Dragged");
         Dx = e.getX();
         Dy = e.getY();
         execAction();
@@ -270,7 +286,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 init();
                 this.repaint();
             }
-            System.out.println(selectedFile.getAbsolutePath());
         }
     }
 
@@ -282,7 +297,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             String line;
             line = br.readLine();
             int size_ver = Integer.parseInt(line);
-            System.out.println(size_ver);
             for (int i = 0; i < size_ver; i++) {
                 line = br.readLine();
                 String[] splitStr = line.split("\\s+");
@@ -363,7 +377,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         if (checkBits(bitsResultOr) == 0) {
             return true;
         } else {
-
             return fixLine(line, bitsS, bitsE);
         }
     }
@@ -399,10 +412,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         Point2D dL = new Point2D(20, vw + 20);
         Point2D dR = new Point2D(vh + 20, vw + 20);
         Point2D uR = new Point2D(vh + 20, 20);
-        Point2D[] lines={uL,uR,dR,dL};
-        Line2D.Double L=new Line2D.Double(line.x1,line.y1,line.x2,line.y2);
-
-
+        Point2D[] lines = {uL, uR, dR, dL};
 
         while (checkBits(bitsS) != 0) {
             int i ;
@@ -444,8 +454,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             if (checkBits(bitsE) != 0) {
                 return false;
             }
-
-
         }
         return true;
     }
@@ -463,24 +471,28 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         return new Point2D((int)x, (int)y);
     }
 
-    @Override
-    public void componentResized(ComponentEvent arg0) {
-        if (s>6) {
-            Component c = (Component)arg0.getSource();
-            Dimension newSize = c.getSize();
-            System.out.println((int)newSize.getWidth());
-            System.out.println((int)newSize.getHeight());
-
-            vw = (int)newSize.getWidth() - 40;
-            vh = (int)newSize.getHeight() - 40;
-            load();
-        }
-        s++;
-
-    }
-
-    @Override
-    public void componentShown(ComponentEvent e) {}
+//    @Override
+//    public void componentResized(ComponentEvent arg0) {
+//        if (s>6) {
+//            Component c = (Component)arg0.getSource();
+//            Dimension newSize = c.getSize();
+//            System.out.println((int)newSize.getWidth());
+//            System.out.println((int)newSize.getHeight());
+//
+//            vw = (int)newSize.getWidth() - 40;
+//            vh = (int)newSize.getHeight() - 40;
+//            setSize(vw + 40, vh + 40);
+//            load();
+//        }
+//        s++;
+////
+////        Component c = (Component)arg0.getSource();
+////        Dimension newSize = c.getSize();
+////        vw = (int)newSize.getWidth() - 40;
+////        vh = (int)newSize.getHeight() - 40;
+////        System.out.println(vh + " " + vw);
+////        load();
+//    }
     @Override
     public void mouseClicked(MouseEvent e) {}
     @Override
@@ -493,8 +505,4 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     public void keyTyped(KeyEvent e) {}
     @Override
     public void keyReleased(KeyEvent e) {}
-    @Override
-    public void componentMoved(ComponentEvent arg0) {}
-    @Override
-    public void componentHidden(ComponentEvent arg0) {}
 }
