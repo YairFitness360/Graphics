@@ -1,4 +1,8 @@
 public class Matrix {
+    /**
+     * createInitMatrix.
+     * @return a 4x4 init matrix.
+     */
     public double[][] createInitMatrix() {
         double initMatrix[][] = new double[4][4];
         for(int i = 0; i < 4; i++) {

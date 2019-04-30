@@ -26,39 +26,61 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private File fileScn = new File("example3d.scn");
     private double centerX, centerY;
 
+    /**
+     * Constructor.
+     * Add the listeners of the moues and key.
+     */
     public MyCanvas() {
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
+        // Create a component adapter that will update the dimension of the canvas when
+        // the resize event rises.
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                Component vp = e.getComponent();
-                Dimension dim = vp.getSize();
+                Component comp = e.getComponent();
+                Dimension dim = comp.getSize();
+                // Update the width and height to the new dimension.
                 vw = dim.width - 40;
                 vh = dim.height - 40;
                 load();
             }
         });
         init();
+        // Set the current size.
+        setPreferredSize(new Dimension(vh + 40, vw + 40));
     }
 
+    /**
+     * init.
+     * Initial the view and scene parameters.
+     */
     private void init() {
         readView();
         readScn();
         this.matrix = new Matrix();
         this.CT = matrix.createInitMatrix();
         this.TT = matrix.createInitMatrix();
-        setPreferredSize(new Dimension(vh + 40, vw + 40));
         packFrame();
     }
 
+    /**
+     * load.
+     * Update the center point according to the current height and width,
+     * and create the matrices of TrM.
+     */
     private void load() {
         centerX = (vw / 2) + 20;
         centerY = (vh / 2) + 20;
         createTrM();
     }
 
+    /**
+     * packFrame.
+     * Get the frame parent of this canvas and call to the pack method that sizes
+     * the frame so that all its contents are at or above their preferred sizes.
+     */
     private void packFrame() {
         Container parent = getParent();
         while (parent != null) {
@@ -70,6 +92,10 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
     }
 
+    /**
+     * createTrM.
+     * create the matrices of TrM.
+     */
     private void createTrM() {
         double[][] T1, T2;
         double wcx = l + ((r - l) / 2);
@@ -98,11 +124,11 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double[][] createR() {
         double[] sub_p_l = {Px - Lx, Py - Ly, Pz - Lz};
         double z_norm = math.getVecNorm(sub_p_l);
-        double[] zv = math.devideVec(sub_p_l, z_norm);
+        double[] zv = math.divideVec(sub_p_l, z_norm);
         Point3D zv_point = new Point3D(zv[0], zv[1], zv[2]);
         double[] mult_v_z = math.multPP(new Point3D(Vx, Vy, Vz), zv_point);
         double x_norm = math.getVecNorm(mult_v_z);
-        double[] xv = math.devideVec(mult_v_z, x_norm);
+        double[] xv = math.divideVec(mult_v_z, x_norm);
         double[] yv = math.multPP(zv_point, new Point3D(xv[0], xv[1], xv[2]));
         double[][] transMatrix = matrix.createInitMatrix();
         transMatrix[0][0] = xv[0];
@@ -279,13 +305,12 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             String extension = getExtension(selectedFile.getName());
             if (extension.equals("scn")) {
                 fileScn = new File(selectedFile.getName());
-                init();
-                this.repaint();
+                readScn();
             } else if (extension.equals("viw")) {
                 fileView = new File(selectedFile.getName());
                 init();
-                this.repaint();
             }
+            this.repaint();
         }
     }
 
