@@ -49,7 +49,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         this.matrix = new Matrix();
         this.CT = matrix.createInitMatrix();
         this.TT = matrix.createInitMatrix();
-        setPreferredSize(new Dimension(vw + 40, vh + 40));
+        setPreferredSize(new Dimension(vh + 40, vw + 40));
         packFrame();
     }
 
@@ -409,9 +409,9 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
 
     private boolean fixLine(Line2D.Double line, int[] bitsS, int[] bitsE) {
         Point2D uL = new Point2D(20, 20);
-        Point2D dL = new Point2D(20, vw + 20);
-        Point2D dR = new Point2D(vh + 20, vw + 20);
-        Point2D uR = new Point2D(vh + 20, 20);
+        Point2D dL = new Point2D(20, vh + 20);
+        Point2D dR = new Point2D(vw + 20, vh + 20);
+        Point2D uR = new Point2D(vw + 20, 20);
         Point2D[] lines = {uL, uR, dR, dL};
 
         while (checkBits(bitsS) != 0) {
@@ -420,16 +420,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 if (bitsS[i] == 1) {
                     break;
                 }
-            }
-            System.out.println(line.x1);
-            System.out.println(line.y1);
-            System.out.println(line.x2);
-            System.out.println(line.y2);
-            for (int k = 0; k < 4; k++) {
-                System.out.println(bitsS[i]);
-            }
-            for (int k = 0; k < 4; k++) {
-                System.out.println(bitsE[i]);
             }
             Point2D new_p = findIntersection(new Point2D((int) line.x1, (int) line.y1),
                     new Point2D((int) line.x2, (int) line.y2), lines[i], lines[(i + 1) % 4]);
@@ -471,28 +461,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         return new Point2D((int)x, (int)y);
     }
 
-//    @Override
-//    public void componentResized(ComponentEvent arg0) {
-//        if (s>6) {
-//            Component c = (Component)arg0.getSource();
-//            Dimension newSize = c.getSize();
-//            System.out.println((int)newSize.getWidth());
-//            System.out.println((int)newSize.getHeight());
-//
-//            vw = (int)newSize.getWidth() - 40;
-//            vh = (int)newSize.getHeight() - 40;
-//            setSize(vw + 40, vh + 40);
-//            load();
-//        }
-//        s++;
-////
-////        Component c = (Component)arg0.getSource();
-////        Dimension newSize = c.getSize();
-////        vw = (int)newSize.getWidth() - 40;
-////        vh = (int)newSize.getHeight() - 40;
-////        System.out.println(vh + " " + vw);
-////        load();
-//    }
     @Override
     public void mouseClicked(MouseEvent e) {}
     @Override
