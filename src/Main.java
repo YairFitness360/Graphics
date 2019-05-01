@@ -17,7 +17,6 @@ public class Main {
             }
         };
         frame.addWindowListener(winAdapter);
-
         frame.pack();
         frame.setVisible(true);
     }

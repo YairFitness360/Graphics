@@ -44,6 +44,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 // Update the width and height to the new dimension.
                 vw = dim.width - 40;
                 vh = dim.height - 40;
+                System.out.println(vh + " " + vw);
                 load();
             }
         });
@@ -104,15 +105,16 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         T1 = trans.Translate(-wcx, -wcy);
         T2 = trans.Translate(20 + (vw / 2), 20 + (vh / 2));
         VM2 = math.multMatrix(T2, math.multMatrix(S, T1));
-
         double[][] T = createT();
         double[][] R = createR();
         VM1 = math.multMatrix(R, T);
-
         P = matrix.createInitMatrix();
         P[2][2] = 0;
     }
-
+    /**
+     * create T matrix.
+     * @return T matrix of MV1
+     */
     private double[][] createT() {
         double[][] transMatrix = matrix.createInitMatrix();
         transMatrix[0][3] = -Px;
@@ -120,7 +122,10 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         transMatrix[2][3] = -Pz;
         return transMatrix;
     }
-
+    /**
+     * create R matrix
+     * @return R matrix of MV1.
+     */
     private double[][] createR() {
         double[] sub_p_l = {Px - Lx, Py - Ly, Pz - Lz};
         double z_norm = math.getVecNorm(sub_p_l);
@@ -142,7 +147,9 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         transMatrix[2][2] = zv[2];
         return transMatrix;
     }
-
+    /**
+     * execute action according to key pressed.
+     */
     private void execAction() {
         switch(this.curPosTrans) {
             case 'T':
@@ -158,28 +165,31 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 break;
         }
     }
-
+    /**
+     * execute translate
+     */
     private void execTranslate() {
         CT = trans.Translate((Dx - Sx) * ((r - l) / vw), (Dy - Sy) * (-((t - b) / vh)));
     }
-
+    /**
+     * execute rotation
+     */
     private void execeRotation() {
         double[] vecStart = new double[2];
         double[] vecEnd = new double[2];
-
         vecStart[0] = Sx - centerX;
         vecStart[1] = Sy - centerY;
-
         vecEnd[0] = Dx - centerX;
         vecEnd[1] = Dy - centerY;
-
         double angleFromVecStart = math.getAngleFromXAxisToVec(vecStart);
         double angleFromVecEnd = math.getAngleFromXAxisToVec(vecEnd);
         double angle = angleFromVecStart - angleFromVecEnd;
         CT = trans.Rotate(angle, rotateAxis);
         createCT();
     }
-
+    /**
+     * execute  scale.
+     */
     private void execScale() {
         double Rs = math.distance(Sx, Sy, centerX, centerY);
         double Rd = math.distance(Dx, Dy, centerX, centerY);
@@ -187,7 +197,9 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         CT = trans.Scale(scaleParameter, scaleParameter, scaleParameter);
         createCT();
     }
-
+    /**
+     * update CT matrix.
+     */
     private void createCT() {
         double[] LookAt = {Lx, Ly, Lz};
         double[] Position = {Px, Py, Pz};
@@ -198,13 +210,21 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         Tl[2][3] = -d;
         CT = math.multMatrix(Tl, CT);
     }
-
+    /**
+     * get location of mouse pressed.
+     * @param e MouseEvent param
+     */
     public void mousePressed(MouseEvent e) {
         Sx = e.getX();
         Sy = e.getY();
         curPosTrans = findMousePos(Sx, Sy);
     }
-
+    /**
+     * find mouse position
+     * @param x is the x axis
+     * @param y the y axis
+     * @return R/T/S/- rotate,scale,translation or none
+     */
     private char findMousePos(double x, double y) {
         if (x < 20 || y < 20 || x > vw + 20 || y > vh + 20) {
             return '-';
@@ -216,7 +236,10 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             return 'S';
         }
     }
-
+    /**
+     * get location of mouse released.
+     * @param e MouseEvent param
+     */
     public void mouseReleased(MouseEvent e) {
         Dx = e.getX();
         Dy = e.getY();
@@ -224,14 +247,20 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         CT = matrix.createInitMatrix();
         this.repaint();
     }
-
+    /**
+     * get location of mouse dragged.
+     * @param e MouseEvent param
+     */
     public void mouseDragged(MouseEvent e) {
         Dx = e.getX();
         Dy = e.getY();
         execAction();
         this.repaint();
     }
-
+    /**
+     * excute available options. Reverse,clip,load,x/y/z axis,quit
+     * @param e is KeyEvent param
+     */
     public void keyPressed(KeyEvent e) {
         switch (e.getKeyChar()) {
             case 'C':
@@ -260,7 +289,10 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 break;
         }
     }
-
+    /**
+     * paint the canvas
+     * @param g is a Graphics instance.
+     */
     public void paint(Graphics g) {
         g.drawRect(20, 20, vw, vh);
         double[][] TrM = math.multMatrix(VM2, P);
@@ -285,7 +317,11 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             }
         }
     }
-
+    /**
+     * get extension of file name
+     * @param fileName is a string
+     * @return the extension
+     */
     private String getExtension(String fileName) {
         String extension = "";
         int i = fileName.lastIndexOf('.');
@@ -294,7 +330,9 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
         return extension;
     }
-
+    /**
+     * load new scn/view file. update fileScn/fileView
+     */
     private void loadFile() {
         JFileChooser jfc = new JFileChooser();
         String workingDir = System.getProperty("user.dir");
@@ -313,7 +351,9 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             this.repaint();
         }
     }
-
+    /**
+     * read scn file.update his vars.
+     */
     private void readScn() {
         vertexes.clear();
         polygons.clear();
@@ -341,7 +381,9 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             e.printStackTrace();
         }
     }
-
+    /**
+     * read view file.update his vars.
+     */
     private void readView() {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileView), "Cp1252"));
@@ -384,7 +426,11 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             e.printStackTrace();
         }
     }
-
+    /**
+     * make clipping.
+     * @param line is Line in double form
+     * @return returns if clipping needed or not
+     */
     private boolean clip(Line2D.Double line) {
         int[] bitsS = initBits(line.x1, line.y1);
         int[] bitsE = initBits(line.x2, line.y2);
@@ -405,7 +451,11 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             return fixLine(line, bitsS, bitsE);
         }
     }
-
+    /**
+     * returns the sum of array.
+     * @param bitsResult is a integers array.
+     * @return returns the sum
+     */
     private int checkBits(int[] bitsResult) {
         int sum = 0;
         for (int i = 0; i < 4; i++) {
@@ -413,7 +463,12 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
         return sum;
     }
-
+    /**
+     * init bits of array which represents if axis need to clip.
+     * @param x is x axis of point.
+     * @param y is y axis of point.
+     * @return returns bits after all 4 check
+     */
     private int[] initBits(double x, double y) {
         int[] bits = {0, 0, 0, 0};
         double xMin = 20, xMax = vw + 20, yMin = 20, yMax = vh + 20;
@@ -431,14 +486,19 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
         return bits;
     }
-
+    /**
+     * cut the line when it cross the frame.
+     * @param line is a double line need to be fixed.
+     * @param bitsS is the start of the line.
+     * @param bitsE is the end of the line.
+     * @return returns if line is in frame and fix succeed
+     */
     private boolean fixLine(Line2D.Double line, int[] bitsS, int[] bitsE) {
         Point2D uL = new Point2D(20, 20);
         Point2D dL = new Point2D(20, vh + 20);
         Point2D dR = new Point2D(vw + 20, vh + 20);
         Point2D uR = new Point2D(vw + 20, 20);
         Point2D[] lines = {uL, uR, dR, dL};
-
         while (checkBits(bitsS) != 0) {
             int i ;
             for (i=0; i < 4; i++) {
@@ -454,7 +514,6 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 return false;
             }
         }
-
         while (checkBits(bitsE) != 0) {
             int i;
             for (i = 0; i < 4; i++) {
@@ -472,7 +531,14 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         }
         return true;
     }
-
+    /**
+     * find the intersection of 2 lines and returns it,
+     * @param p1x is the x axis of first point
+     * @param p1y is the y axis of first point
+     * @param p2x is the x axis of second point
+     * @param p2y is the y axis of second point
+     * @return returns the intersection point
+     */
     private Point2D findIntersection(Point2D p1x, Point2D p1y, Point2D p2x, Point2D p2y) {
         double a1 = p1y.getY() - p1x.getY();
         double b1 = p1x.getX() - p1y.getX();
