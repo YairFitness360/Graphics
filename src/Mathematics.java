@@ -1,3 +1,7 @@
+/*
+Name: Yuval Hoch Id: 204468474
+Name: Yair Shlomo Id: 308536150
+ */
 public class Mathematics {
     /**
      * getVecNorm.

@@ -1,3 +1,7 @@
+/*
+Name: Yuval Hoch Id: 204468474
+Name: Yair Shlomo Id: 308536150
+ */
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -11,7 +15,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
     private double Lx, Ly, Lz;
     private double Vx, Vy, Vz;
     private double[][] VM1, P, CT, TT, VM2;
-    private int vw, vh;
+    private int vw, vh, old_vw, old_vh;
     private ArrayList<Point3D> vertexes = new ArrayList<>();
     private ArrayList<int[]> polygons = new ArrayList<>();
     private Mathematics math = new Mathematics();
@@ -34,6 +38,8 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
+        setFocusable(true);
+
         // Create a component adapter that will update the dimension of the canvas when
         // the resize event rises.
         addComponentListener(new ComponentAdapter() {
@@ -44,11 +50,12 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 // Update the width and height to the new dimension.
                 vw = dim.width - 40;
                 vh = dim.height - 40;
-                System.out.println(vh + " " + vw);
                 load();
             }
         });
         init();
+        readView();
+        readScn();
         // Set the current size.
         setPreferredSize(new Dimension(vh + 40, vw + 40));
     }
@@ -58,11 +65,11 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
      * Initial the view and scene parameters.
      */
     private void init() {
-        readView();
-        readScn();
         this.matrix = new Matrix();
         this.CT = matrix.createInitMatrix();
         this.TT = matrix.createInitMatrix();
+        setPreferredSize(new Dimension(vh + 40, vw + 40));
+
         packFrame();
     }
 
@@ -268,8 +275,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 this.repaint();
                 break;
             case 'R':
-                createTrM();
-                this.repaint();
+                this.reset();
                 break;
             case 'L':
                 loadFile();
@@ -288,6 +294,18 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             default:
                 break;
         }
+    }
+    /**
+     * reset the shape
+     */
+    public void reset(){
+        this.CT = matrix.createInitMatrix();
+        this.TT = matrix.createInitMatrix();
+        vw = old_vw;
+        vh = old_vh;
+        setPreferredSize(new Dimension(vh + 40, vw + 40));
+        packFrame();
+        this.repaint();
     }
     /**
      * paint the canvas
@@ -346,6 +364,7 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
                 readScn();
             } else if (extension.equals("viw")) {
                 fileView = new File(selectedFile.getName());
+                readView();
                 init();
             }
             this.repaint();
@@ -419,8 +438,8 @@ public class MyCanvas extends Canvas implements MouseListener, MouseMotionListen
             line = br.readLine();
             String Viewport_str = line.replace("Viewport ", "");
             splitStr = Viewport_str.split("\\s+");
-            vw = Integer.parseInt(splitStr[0]);
-            vh = Integer.parseInt(splitStr[1]);
+            old_vw = vw = Integer.parseInt(splitStr[0]);
+            old_vh = vh = Integer.parseInt(splitStr[1]);
             br.close();
         } catch (IOException e) {
             e.printStackTrace();

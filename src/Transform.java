@@ -1,10 +1,14 @@
+/*
+Name: Yuval Hoch Id: 204468474
+Name: Yair Shlomo Id: 308536150
+ */
 public class Transform {
     private Matrix matrix = new Matrix();
 
     /**
      * Translate.
-     * @param delta_x
-     * @param delta_y
+     * @param delta_x x axis direction
+     * @param delta_y y axis direction
      * @return the translation matrix that moves every point by the same distance
      *          in a given direction. The matrix:
      *          |1  0  0  delta_x|

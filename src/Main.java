@@ -1,3 +1,7 @@
+/*
+Name: Yuval Hoch Id: 204468474
+Name: Yair Shlomo Id: 308536150
+ */
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
